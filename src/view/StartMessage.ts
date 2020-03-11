@@ -18,7 +18,7 @@ class StartMessage extends GameObject{
         this.texts[1] = Util.newTextField("下の１〜９の数字キーで入力しよう", Util.width / 20, FONT_COLOR, 0.5, 0.5, true, false);
         this.texts.forEach( text =>{ GameObject.baseDisplay.addChild( text ); });
 
-        this.button = new Button( null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, false, this.onTap, this ); // 透明な全画面ボタン
+        this.button = new Button( null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, -1, this.onTap, this ); // 透明な全画面ボタン
     }
 
     onDestroy(){

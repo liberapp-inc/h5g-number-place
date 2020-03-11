@@ -20,7 +20,7 @@ class SceneTitle extends GameObject{
         let bestScore = Util.getSaveDataNumber( SaveKeyBestScore, DefaultBestScore );
         this.texts[2] = Util.newTextField("BEST"+bestScore+"", Util.width / 14, FONT_COLOR, 0.5, 0.45, true, true);
 
-        this.startButton = new Button("スタート", Util.width/16, BACK_COLOR, 0.50, 0.70, 0.7, 0.12, FONT_COLOR, 1.0, true, this.onTapStart, this );
+        this.startButton = new Button("スタート", Util.width/16, BACK_COLOR, 0.50, 0.70, 0.7, 0.12, FONT_COLOR, 1.0, -1, this.onTapStart, this );
 
         this.texts.forEach( text =>{ if( text ){ GameObject.baseDisplay.addChild( text ); } });
     }
