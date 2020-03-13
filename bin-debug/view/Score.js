@@ -20,7 +20,7 @@ var Score = (function (_super) {
         _this.text = null;
         Score.I = _this;
         _this.point = 0;
-        _this.text = Util.newTextField("", Util.width / 22, FONT2_COLOR, 0.0, 0.0, true, true);
+        _this.text = Util.newTextField("", Util.width / 22, Font2Color, 0.0, 0.0, true, true);
         GameObject.baseDisplay.addChild(_this.text);
         _this.bestScore = Util.getSaveDataNumber(SaveKeyBestScore, DefaultBestScore);
         return _this;

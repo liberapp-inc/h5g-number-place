@@ -25,7 +25,7 @@ class Button extends GameObject{
     x:number = 0;
     y:number = 0;
 
-    constructor( text:string, fontsize:number, fontRgb:number, xRatio:number, yRatio:number, wRatio:number, hRatio:number, rgb:number, alpha:number, lineRgb:number, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
+    constructor( text:string, fontsize:number, fontRgb:number, xRatio:number, yRatio:number, wRatio:number, hRatio:number, rgb:number, alpha:number, lineRgb:number, bold:boolean, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
         super();
 
         this.lineRgb = lineRgb;
@@ -42,12 +42,11 @@ class Button extends GameObject{
         this.setDisplay( lineRgb, rgb, alpha, xRatio, yRatio, wRatio, hRatio );
 
         if( text ){
-            this.setText( text );
+            this.setText( text, true );
         }
         this.onTap = onTap;
         this.thisObject = thisObject;
         this.keyId = id;
-        todo display に addlistenerしているので差し替え不可　clear()使うべし
         if( this.onTap ) this.display.addEventListener(egret.TouchEvent.TOUCH_TAP, (btn:Button)=>this.onTap(this), this.thisObject);
         this.display.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
         this.display.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
@@ -64,17 +63,19 @@ class Button extends GameObject{
     }
 
     setDisplay( lineRgb:number, rgb:number, alpha:number, xr:number, yr:number, wr:number, hr:number ){
-        if( this.display ){
-            this.display.parent.removeChild( this.display );
+        let shape = this.display as egret.Shape;
+        if( shape == null ){
+            this.display = shape = new egret.Shape();
+            GameObject.baseDisplay.addChild(shape);
+        }else{
+            shape.graphics.clear();
         }
-        let shape = new egret.Shape();
-        GameObject.baseDisplay.addChild(shape);
         if( lineRgb>=0 )    shape.graphics.lineStyle( 2, lineRgb );
         else                shape.graphics.lineStyle( 0 );
         shape.graphics.beginFill( rgb, alpha );
         let w = wr * Util.width;
         let h = hr * Util.height;
-        shape.graphics.drawRoundRect(-0.5*w, -0.5*h, w, h, h*0.4);
+        shape.graphics.drawRoundRect(-0.5*w, -0.5*h, w, h, h*0.1);
         shape.graphics.endFill();
         shape.touchEnabled = true;
         shape.x = xr * Util.width;
@@ -85,10 +86,22 @@ class Button extends GameObject{
         this.setDisplay( this.lineRgb, rgb, this.alpha, this.xr, this.yr, this.wr, this.hr );
     }
 
-    setText( text:string ){
-        if( this.text ) this.text.parent.removeChild( this.text );
-        this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, true, false);
-        GameObject.baseDisplay.addChild( this.text );
+    setText( text:string, bold:boolean ){
+        if( this.text == null ){
+            this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, bold, false);
+            GameObject.baseDisplay.addChild( this.text );
+        }
+        else{
+            let tf = this.text;
+            this.text.text = text;
+            tf.x = Util.width  * this.xr - tf.width  * 0.5;
+            tf.y = Util.height * this.yr - tf.height * 0.5;
+        }
+    }
+    setTextColor( color:number ){
+        if( this.text ){
+            this.text.textColor = color;
+        }
     }
 
     update() {

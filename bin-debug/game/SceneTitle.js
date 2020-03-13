@@ -17,11 +17,11 @@ var SceneTitle = (function (_super) {
         _this.texts = [];
         _this.startButton = null;
         _this.settingsButton = null;
-        _this.texts[0] = Util.newTextField("ナンプレ", Util.width / 9, FONT_COLOR, 0.5, 0.25, true, true);
-        _this.texts[1] = Util.newTextField("あああ", Util.width / 20, FONT_COLOR, 0.5, 0.35, true, false);
+        _this.texts[0] = Util.newTextField("ナンプレ", Util.width / 9, FontColor, 0.5, 0.25, true, true);
+        _this.texts[1] = Util.newTextField("あああ", Util.width / 20, FontColor, 0.5, 0.35, true, false);
         var bestScore = Util.getSaveDataNumber(SaveKeyBestScore, DefaultBestScore);
-        _this.texts[2] = Util.newTextField("BEST" + bestScore + "", Util.width / 14, FONT_COLOR, 0.5, 0.45, true, true);
-        _this.startButton = new Button("スタート", Util.width / 16, BACK_COLOR, 0.50, 0.70, 0.7, 0.12, FONT_COLOR, 1.0, -1, _this.onTapStart, _this);
+        _this.texts[2] = Util.newTextField("BEST" + bestScore + "", Util.width / 14, FontColor, 0.5, 0.45, true, true);
+        _this.startButton = new Button("スタート", Util.width / 16, BackColor, 0.50, 0.70, 0.7, 0.12, FontColor, 1.0, -1, true, _this.onTapStart, _this);
         _this.texts.forEach(function (text) { if (text) {
             GameObject.baseDisplay.addChild(text);
         } });

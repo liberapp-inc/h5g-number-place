@@ -12,7 +12,7 @@ r.prototype = e.prototype, t.prototype = new r();
 };
 var Button = (function (_super) {
     __extends(Button, _super);
-    function Button(text, fontsize, fontRgb, xRatio, yRatio, wRatio, hRatio, rgb, alpha, lineRgb, onTap, thisObject, id) {
+    function Button(text, fontsize, fontRgb, xRatio, yRatio, wRatio, hRatio, rgb, alpha, lineRgb, bold, onTap, thisObject, id) {
         if (id === void 0) { id = 0; }
         var _this = _super.call(this) || this;
         _this.text = null;
@@ -34,7 +34,7 @@ var Button = (function (_super) {
         _this.fontRgb = fontRgb;
         _this.setDisplay(lineRgb, rgb, alpha, xRatio, yRatio, wRatio, hRatio);
         if (text) {
-            _this.setText(text);
+            _this.setText(text, true);
         }
         _this.onTap = onTap;
         _this.thisObject = thisObject;
@@ -57,11 +57,14 @@ var Button = (function (_super) {
             GameObject.baseDisplay.removeChild(this.text);
     };
     Button.prototype.setDisplay = function (lineRgb, rgb, alpha, xr, yr, wr, hr) {
-        if (this.display) {
-            this.display.parent.removeChild(this.display);
+        var shape = this.display;
+        if (shape == null) {
+            this.display = shape = new egret.Shape();
+            GameObject.baseDisplay.addChild(shape);
         }
-        var shape = new egret.Shape();
-        GameObject.baseDisplay.addChild(shape);
+        else {
+            shape.graphics.clear();
+        }
         if (lineRgb >= 0)
             shape.graphics.lineStyle(2, lineRgb);
         else
@@ -69,7 +72,7 @@ var Button = (function (_super) {
         shape.graphics.beginFill(rgb, alpha);
         var w = wr * Util.width;
         var h = hr * Util.height;
-        shape.graphics.drawRoundRect(-0.5 * w, -0.5 * h, w, h, h * 0.4);
+        shape.graphics.drawRoundRect(-0.5 * w, -0.5 * h, w, h, h * 0.1);
         shape.graphics.endFill();
         shape.touchEnabled = true;
         shape.x = xr * Util.width;
@@ -79,11 +82,22 @@ var Button = (function (_super) {
     Button.prototype.setColor = function (rgb) {
         this.setDisplay(this.lineRgb, rgb, this.alpha, this.xr, this.yr, this.wr, this.hr);
     };
-    Button.prototype.setText = function (text) {
-        if (this.text)
-            this.text.parent.removeChild(this.text);
-        this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, true, false);
-        GameObject.baseDisplay.addChild(this.text);
+    Button.prototype.setText = function (text, bold) {
+        if (this.text == null) {
+            this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, bold, false);
+            GameObject.baseDisplay.addChild(this.text);
+        }
+        else {
+            var tf = this.text;
+            this.text.text = text;
+            tf.x = Util.width * this.xr - tf.width * 0.5;
+            tf.y = Util.height * this.yr - tf.height * 0.5;
+        }
+    };
+    Button.prototype.setTextColor = function (color) {
+        if (this.text) {
+            this.text.textColor = color;
+        }
     };
     Button.prototype.update = function () {
         var scale = this.touch ? 1.1 : 1.0;

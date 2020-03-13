@@ -20,10 +20,10 @@ var StartMessage = (function (_super) {
         StartMessage.I = _this;
         _this.rectFilter = new Rect(0, Util.h(0.325), Util.width, Util.h(0.3), 0x000000, false, true);
         _this.rectFilter.display.alpha = 0.4;
-        _this.texts[0] = Util.newTextField("空いているマスをタップで選択", Util.width / 20, FONT_COLOR, 0.5, 0.4, true, false);
-        _this.texts[1] = Util.newTextField("下の１〜９の数字キーで入力しよう", Util.width / 20, FONT_COLOR, 0.5, 0.5, true, false);
+        _this.texts[0] = Util.newTextField("空いているマスをタップで選択", Util.width / 20, FontColor, 0.5, 0.4, true, false);
+        _this.texts[1] = Util.newTextField("下の１〜９の数字キーで入力しよう", Util.width / 20, FontColor, 0.5, 0.5, true, false);
         _this.texts.forEach(function (text) { GameObject.baseDisplay.addChild(text); });
-        _this.button = new Button(null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, -1, _this.onTap, _this); // 透明な全画面ボタン
+        _this.button = new Button(null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, -1, true, _this.onTap, _this); // 透明な全画面ボタン
         return _this;
     }
     StartMessage.prototype.onDestroy = function () {
