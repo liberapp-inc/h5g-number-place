@@ -10,7 +10,7 @@ class BlockLine extends GameObject{
         this.display = shape;
         GameObject.baseDisplay.addChild(shape);
 
-        shape.graphics.lineStyle( 2, 0x000000 );
+        shape.graphics.lineStyle( 5, 0x505050 );
 
         let ix;
         let iy;

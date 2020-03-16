@@ -12,6 +12,7 @@
 	"game": [
 		"bin-debug/system/GameObject.js",
 		"bin-debug/Main.js",
+		"bin-debug/game/Box.js",
 		"bin-debug/game/Game.js",
 		"bin-debug/game/ScenePlay.js",
 		"bin-debug/game/SceneTitle.js",

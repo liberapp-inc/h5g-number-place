@@ -17,7 +17,7 @@ var BlockLine = (function (_super) {
         var shape = new egret.Shape();
         _this.display = shape;
         GameObject.baseDisplay.addChild(shape);
-        shape.graphics.lineStyle(2, 0x000000);
+        shape.graphics.lineStyle(5, 0x505050);
         var ix;
         var iy;
         var w = Util.w(BoxWpw) * 3;

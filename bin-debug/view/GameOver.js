@@ -19,7 +19,7 @@ var GameOver = (function (_super) {
         _this.step = 0;
         _this.fadeInFrame = 64;
         GameOver.I = _this;
-        _this.texts[0] = Util.newTextField("SCORE : " + Score.I.point.toFixed(), Util.width / 12, Font2Color, 0.5, 0.3, true, false);
+        _this.texts[0] = Util.newTextField("CLEAR!!", Util.width / 12, Font2Color, 0.5, 0.3, true, false);
         egret.Tween.get(_this.texts[0], { loop: false })
             .to({ alpha: 0 }, 0)
             .to({ alpha: 1 }, 1000);

@@ -60,8 +60,8 @@ var Main = (function (_super) {
                 GameObject.initial(this.stage);
                 // PhysicsObject.prepare( PIXEL_PER_METER );
                 Camera2D.initial();
-                // SceneTitle.loadScene();
-                ScenePlay.loadScene();
+                SceneTitle.loadScene();
+                //        ScenePlay.loadScene();  // test
                 egret.startTick(this.tickLoop, this);
                 return [2 /*return*/];
             });

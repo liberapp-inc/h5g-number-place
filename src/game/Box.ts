@@ -1,7 +1,7 @@
 // Liberapp 2020 - Tahiti Katagai
-// 汎用ボタン
+// 9x9のマス１つ
 
-class Button extends GameObject{
+class Box extends GameObject{
 
     text:egret.TextField = null;
 
@@ -25,24 +25,25 @@ class Button extends GameObject{
     x:number = 0;
     y:number = 0;
 
-    constructor( text:string, fontsize:number, fontRgb:number, xRatio:number, yRatio:number, wRatio:number, hRatio:number, rgb:number, alpha:number, lineRgb:number, bold:boolean, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
+    constructor( text:string, xRatio:number, yRatio:number, wRatio:number, hRatio:number, bold:boolean, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
         super();
 
-        this.lineRgb = lineRgb;
-        this.rgb = rgb;
-        this.alpha = alpha;
+        this.lineRgb = FontColor;
+        this.rgb = BoxColor;
+        this.alpha = 1;
         this.xr = xRatio;
         this.yr = yRatio;
         this.wr = wRatio;
         this.hr = hRatio;
 
-        this.fontSize = fontsize;
-        this.fontRgb = fontRgb;
+        this.fontSize = 36;
+        this.fontRgb = Font2Color;
 
-        this.setDisplay( lineRgb, rgb, alpha, xRatio, yRatio, wRatio, hRatio );
+        this.setDisplay( this.lineRgb, this.rgb, this.alpha, xRatio, yRatio, wRatio, hRatio );
 
-        if( text ){
-            this.setText( text, true );
+        if( text != null ){
+            this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, bold, false);
+            GameObject.baseDisplay.addChild( this.text );
         }
         this.onTap = onTap;
         this.thisObject = thisObject;
@@ -75,7 +76,7 @@ class Button extends GameObject{
         shape.graphics.beginFill( rgb, alpha );
         let w = wr * Util.width;
         let h = hr * Util.height;
-        shape.graphics.drawRoundRect(-0.5*w, -0.5*h, w, h, h*0.2);
+        shape.graphics.drawRect( -0.5*w, -0.5*h, w, h );
         shape.graphics.endFill();
         shape.touchEnabled = true;
         shape.x = xr * Util.width;
@@ -86,26 +87,42 @@ class Button extends GameObject{
         this.setDisplay( this.lineRgb, rgb, this.alpha, this.xr, this.yr, this.wr, this.hr );
     }
 
-    setText( text:string, bold:boolean ){
-        if( this.text == null ){
-            this.text = Util.newTextField(text, this.fontSize, this.fontRgb, this.xr, this.yr, bold, false);
-            GameObject.baseDisplay.addChild( this.text );
-        }
-        else{
-            let tf = this.text;
-            this.text.text = text;
-            tf.x = Util.width  * this.xr - tf.width  * 0.5;
-            tf.y = Util.height * this.yr - tf.height * 0.5;
-        }
+    setText( text:string ){
+        let tf = this.text;
+        this.text.text = text;
+        this.text.size = this.fontSize;
+        tf.x = Util.width  * this.xr - tf.width  * 0.5;
+        tf.y = Util.height * this.yr - tf.height * 0.5;
     }
     setTextColor( color:number ){
         if( this.text ){
             this.text.textColor = color;
         }
     }
+    setNote( bit:number ){
+        let text = "";  // "123\n456\n789"  スペース２つで１文字幅
+
+        text += ( (bit & (1<<1) ) != 0 ) ? "1" : "  ";
+        text += ( (bit & (1<<2) ) != 0 ) ? "2" : "  ";
+        text += ( (bit & (1<<3) ) != 0 ) ? "3" : "  ";
+        text += "\n";
+        text += ( (bit & (1<<4) ) != 0 ) ? "4" : "  ";
+        text += ( (bit & (1<<5) ) != 0 ) ? "5" : "  ";
+        text += ( (bit & (1<<6) ) != 0 ) ? "6" : "  ";
+        text += "\n";
+        text += ( (bit & (1<<7) ) != 0 ) ? "7" : "  ";
+        text += ( (bit & (1<<8) ) != 0 ) ? "8" : "  ";
+        text += ( (bit & (1<<9) ) != 0 ) ? "9" : "  ";
+
+        let tf = this.text;
+        this.text.text = text;
+        this.text.size = this.fontSize * 0.5;
+        tf.x = Util.width  * this.xr - tf.width  * 0.5;
+        tf.y = Util.height * this.yr - tf.height * 0.5;
+    }
 
     update() {
-        let scale = this.touch ? 1.1 : 1.0;
+        let scale = this.touch ? 0.95 : 1.0;
         this.display.scaleX = this.display.scaleY = ( this.display.scaleX + (scale - this.display.scaleX) * 0.25 );
         this.press = false;
     }

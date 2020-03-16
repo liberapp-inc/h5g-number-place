@@ -39,10 +39,9 @@ var Game = (function (_super) {
         _this.tapY = 0;
         _this.boxes = [];
         _this.keys = [];
-        _this.initialData = "008000010041700293293540070036900000007000800000005740080072961614009520070000300";
         _this.initialNumbs = [];
-        _this.correctNumbs = [];
         _this.numbs = [];
+        _this.notes = [];
         _this.currentBoxID = -1;
         _this.touchedBoxID = -1;
         _this.touchedKeyID = -1;
@@ -51,16 +50,17 @@ var Game = (function (_super) {
         for (var ix = 0; ix < BoxCount; ix++) {
             for (var iy = 0; iy < BoxCount; iy++) {
                 var i = ix + iy * BoxCount;
-                var numText = _this.initialData[i];
+                var numText = Game.initialData[i];
                 var num = parseInt(numText);
                 _this.initialNumbs[i] = num;
                 _this.numbs[i] = num;
+                _this.notes[i] = 0;
                 if (num == 0)
                     numText = "";
                 var xr = 0.50 + (ix - 4) * BoxWpw;
                 var yr = 0.35 + (iy - 4) * BoxHph;
                 var bold = num != 0;
-                _this.boxes[i] = new Button(numText, 32, FontColor, xr, yr, BoxWpw * 0.9, BoxHph * 0.9, BoxColor, 1, Font2Color, bold, function (btn) { return _this.onBox(btn); }, _this, i);
+                _this.boxes[i] = new Box(numText, xr, yr, BoxWpw * 0.95, BoxHph * 0.95, bold, function (btn) { return _this.onBox(btn); }, _this, i);
             }
         }
         // 数値キー １〜９
@@ -70,9 +70,11 @@ var Game = (function (_super) {
                 var numText = i.toFixed();
                 var xr = 0.50 + (ix - 1) * KeyWpw;
                 var yr = 0.80 + (iy - 1) * KeyHph;
-                _this.keys[i] = new Button(numText, 38, FontColor, xr, yr, KeyWpw * 0.9, KeyHph * 0.9, BoxColor, 1, Font2Color, true, function (btn) { return _this.onKey(btn); }, _this, i);
+                _this.keys[i] = new Button(numText, 42, FontColor, xr, yr, KeyWpw * 0.9, KeyHph * 0.9, BoxColor, 1, FontColor, true, function (btn) { return _this.onKey(btn); }, _this, i);
             }
         }
+        // 削除キー
+        _this.delKey = new Button("×", 42, FontColor, 0.8, 0.8 - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, BoxColor, 1, FontColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
         return _this;
     }
     Game.prototype.onBox = function (btn) {
@@ -80,6 +82,15 @@ var Game = (function (_super) {
     };
     Game.prototype.onKey = function (btn) {
         this.touchedKeyID = btn.keyId;
+    };
+    Game.prototype.onDelKey = function (btn) {
+        if (this.currentBoxID >= 0) {
+            if (this.initialNumbs[this.currentBoxID] == 0) {
+                this.numbs[this.currentBoxID] = 0;
+                this.notes[this.currentBoxID] = 0;
+                this.boxes[this.currentBoxID].setText("");
+            }
+        }
     };
     Game.prototype.onDestroy = function () {
         Game.I = null;
@@ -107,23 +118,47 @@ var Game = (function (_super) {
         if (this.touchedKeyID >= 0) {
             if (this.currentBoxID >= 0) {
                 if (this.initialNumbs[this.currentBoxID] == 0) {
-                    this.numbs[this.currentBoxID] = this.touchedKeyID;
-                    this.boxes[this.currentBoxID].setText(this.touchedKeyID.toFixed(), false);
-                    // 判定（配置上のチェック）
-                    var ix = this.currentBoxID % BoxCount;
-                    var iy = Math.floor(this.currentBoxID / BoxCount);
-                    this.setRelateTextColor(ix, iy);
-                    if (this.checkNumber(ix, iy)) {
-                        this.boxes[this.currentBoxID].setTextColor(FontColor);
+                    // メモがあれば追加削除
+                    if (this.notes[this.currentBoxID] != 0) {
+                        this.notes[this.currentBoxID] ^= (1 << this.touchedKeyID);
+                        if (this.notes[this.currentBoxID] != 0) {
+                            this.boxes[this.currentBoxID].setNote(this.notes[this.currentBoxID]);
+                        }
+                        else {
+                            this.setBoxNumber();
+                        }
+                    }
+                    else if (this.numbs[this.currentBoxID] == this.touchedKeyID) {
+                        this.numbs[this.currentBoxID] = 0;
+                        this.notes[this.currentBoxID] ^= (1 << this.touchedKeyID);
+                        this.boxes[this.currentBoxID].setNote(this.notes[this.currentBoxID]);
                     }
                     else {
-                        this.boxes[this.currentBoxID].setTextColor(0xff0000);
+                        this.setBoxNumber();
                     }
                 }
             }
         }
         this.touchedBoxID = -1;
         this.touchedKeyID = -1;
+    };
+    Game.prototype.setBoxNumber = function () {
+        // マスに設定
+        this.numbs[this.currentBoxID] = this.touchedKeyID;
+        this.boxes[this.currentBoxID].setText(this.touchedKeyID.toFixed());
+        // 判定（配置上のチェック）
+        var ix = this.currentBoxID % BoxCount;
+        var iy = Math.floor(this.currentBoxID / BoxCount);
+        this.setRelateTextColor(ix, iy);
+        if (this.checkNumber(ix, iy)) {
+            this.boxes[this.currentBoxID].setTextColor(FontColor);
+        }
+        else {
+            this.boxes[this.currentBoxID].setTextColor(0xff0000);
+        }
+        if (this.checkClear()) {
+            new GameOver();
+        }
     };
     Game.prototype.setRelateBoxColor = function (ix, iy) {
         var numb = this.numbs[ix + iy * BoxCount];
@@ -160,50 +195,73 @@ var Game = (function (_super) {
     };
     // 判定（現在配置されている数字でダブリがないかチェック　正解かどうかではない）
     Game.prototype.checkNumber = function (ix, iy) {
+        // let numb = this.numbs[ ix + iy * BoxCount ];
+        // let headX = Math.floor(ix/3) * 3;
+        // let headY = Math.floor(iy/3) * 3;
+        // for( let i=0 ; i<BoxCount ; i++ ){
+        //     for( let j=0 ; j<BoxCount ; j++ ){
+        //         if( i == ix && j == iy )
+        //             continue;
+        //         // 対象のマスの数値を判定
+        //         let index = i + j*BoxCount;
+        //         let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
+        //         if( inBox3x3 || i == ix || j==iy ){
+        //             if( this.numbs[ index ] == numb ){
+        //                 return false;   // wrong
+        //             }
+        //         }
+        //     }
+        // }
+        // return true; // correct
+        // こちらのほうが対象を絞って高速　
         var numb = this.numbs[ix + iy * BoxCount];
+        // 横ライン
+        for (var i = 0; i < BoxCount; i++) {
+            if (i != ix && this.numbs[i + iy * BoxCount] == numb) {
+                return false;
+            }
+        }
+        // 縦ライン
+        for (var j = 0; j < BoxCount; j++) {
+            if (j != iy && this.numbs[ix + j * BoxCount] == numb) {
+                return false;
+            }
+        }
+        // ３ｘ３ブロック
         var headX = Math.floor(ix / 3) * 3;
         var headY = Math.floor(iy / 3) * 3;
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 3; j++) {
+                var x = headX + i;
+                var y = headY + j;
+                if (x != ix && y != iy && this.numbs[x + y * BoxCount] == numb) {
+                    return false;
+                }
+            }
+        }
+        return true; // correct
+    };
+    // クリアチェック　すべての入力ナンバーをチェック
+    Game.prototype.checkClear = function () {
+        // すべて入力済みか
+        for (var i = 0; i < this.numbs.length; i++) {
+            if (this.numbs[i] == 0) {
+                return false;
+            }
+        }
         for (var i = 0; i < BoxCount; i++) {
             for (var j = 0; j < BoxCount; j++) {
-                if (i == ix && j == iy)
-                    continue;
-                // 対象のマスの数値を判定
                 var index = i + j * BoxCount;
-                var inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
-                if (inBox3x3 || i == ix || j == iy) {
-                    if (this.numbs[index] == numb) {
-                        return false; // wrong
+                if (this.initialNumbs[index] == 0) {
+                    if (this.checkNumber(i, j) == false) {
+                        return false;
                     }
                 }
             }
         }
         return true; // correct
-        // // 横ライン
-        // for( let i=0 ; i<BoxCount ; i++ ){
-        //     if( i != ix && this.numbs[ i + iy * BoxCount ] == numb ){
-        //         return false;
-        //     }
-        // }
-        // // 縦ライン
-        // for( let j=0 ; j<BoxCount ; j++ ){
-        //     if( j != iy && this.numbs[ ix + j * BoxCount ] == numb ){
-        //         return false;
-        //     }
-        // }
-        // // ３ｘ３ブロック
-        // let headX = Math.floor(ix/3) * 3;
-        // let headY = Math.floor(iy/3) * 3;
-        // for( let i=0 ; i<3 ; i++ ){
-        //     for( let j=0 ; j<3 ; j++ ){
-        //         let x = headX + i;
-        //         let y = headY + j;
-        //         if( x!=ix && y!=iy && this.numbs[ x + y * BoxCount ] == numb ){
-        //             return false;
-        //         }
-        //     }
-        // }
-        // return true;    // correct
     };
+    Game.initialData = "008000010041700293293540070036900000007000800000005740080072961614009520070000300";
     return Game;
 }(GameObject));
 __reflect(Game.prototype, "Game");
