@@ -37,7 +37,7 @@ class Box extends GameObject{
         this.hr = hRatio;
 
         this.fontSize = 36;
-        this.fontRgb = Font2Color;
+        this.fontRgb = BoxFontColor;
 
         this.setDisplay( this.lineRgb, this.rgb, this.alpha, xRatio, yRatio, wRatio, hRatio );
 
@@ -67,11 +67,11 @@ class Box extends GameObject{
         let shape = this.display as egret.Shape;
         if( shape == null ){
             this.display = shape = new egret.Shape();
-            GameObject.baseDisplay.addChild(shape);
+            GameObject.gameDisplay.addChild(shape);
         }else{
             shape.graphics.clear();
         }
-        if( lineRgb>=0 )    shape.graphics.lineStyle( 2, lineRgb );
+        if( lineRgb>=0 )    shape.graphics.lineStyle( 1, lineRgb );
         else                shape.graphics.lineStyle( 0 );
         shape.graphics.beginFill( rgb, alpha );
         let w = wr * Util.width;

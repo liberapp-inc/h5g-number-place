@@ -4,13 +4,25 @@
 const SaveKeyBestScore = "numpla-bestScore";
 const DefaultBestScore = 50;
 
-const BackColor = 0xf8fafc;    // index.htmlで設定
-const FontColor = 0x101010;
-const Font2Color = 0xd00000;
+const BackColor = 0x000000;    // index.htmlで設定
+const FontColor = 0x00ffff;
 
-const BoxColor = 0xf0f0f0;
-const RelateBoxColor = 0xc0e0f0;
-const SelectBoxColor = 0xf0c080;
+const BoxColor = 0x205080;
+const BoxFontColor = 0xff0060;
+
+const FixedBoxColor  = 0x204070;
+const RelateBoxColor = 0x002040;
+const SelectBoxColor = 0x001020;
+
+const RightFontColor = 0x0040ff;
+const WrongFontColor = 0xffff00;
+const EqualNumbColor = 0xffff00;
+
+const KeyColor = 0xff50ff;
+const KeyLineColor = 0;
+const KeyFontColor = 0x200020;
+
+const EffectColor = 0x00ffe0;
 
 const BoxCount = 9;
 const BoxSizeInW = 10;
@@ -66,6 +78,7 @@ class Game extends GameObject{
                 let yr = 0.35 + (iy-4) * BoxHph;
                 let bold = num != 0;
                 this.boxes[ i ] = new Box( numText, xr, yr, BoxWpw*0.95, BoxHph*0.95, bold, (btn:Box)=>this.onBox(btn), this, i );
+                if( bold ) this.boxes[ i ].setColor( FixedBoxColor );
             }
         }
 
@@ -76,11 +89,11 @@ class Game extends GameObject{
                 let numText = i.toFixed();
                 let xr = 0.50 + (ix-1) * KeyWpw;
                 let yr = 0.80 + (iy-1) * KeyHph;
-                this.keys[ i ] = new Button( numText, 42, FontColor, xr, yr, KeyWpw*0.9, KeyHph*0.9, BoxColor, 1, FontColor, true, (btn:Button)=>this.onKey(btn), this, i );
+                this.keys[ i ] = new Button( numText, 42, KeyFontColor, xr, yr, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onKey(btn), this, i );
             }
         }
         // 削除キー
-        this.delKey = new Button( "×", 42, FontColor, 0.8, 0.8-KeyHph, KeyWpw*0.9, KeyHph*0.9, BoxColor, 1, FontColor, true, (btn:Button)=>this.onDelKey(btn), this );
+        this.delKey = new Button( "×", 42, KeyFontColor, 0.8, 0.8-KeyHph, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onDelKey(btn), this );
     }
 
     onBox( btn:Box ){
@@ -97,8 +110,7 @@ class Game extends GameObject{
                 this.boxes[ this.currentBoxID ].setText( "" );
             }
         }
-    
-}
+    }   
 
 	onDestroy(){
         Game.I = null;
@@ -122,7 +134,9 @@ class Game extends GameObject{
             this.setRelateBoxColor( ix, iy );
             this.setRelateTextColor( ix, iy );
             // 対象BOXカラー
-            this.boxes[ this.currentBoxID ].setColor( SelectBoxColor );
+            let box = this.boxes[ this.currentBoxID ];
+            box.setColor( SelectBoxColor );
+            this.effectChooseBox( box.X, box.Y );
         }
         
         // 数字キー入力
@@ -161,19 +175,44 @@ class Game extends GameObject{
         this.boxes[ this.currentBoxID ].setText( this.touchedKeyID.toFixed() );
 
         // 判定（配置上のチェック）
+        let box = this.boxes[ this.currentBoxID ];
         let ix = this.currentBoxID % BoxCount;
         let iy = Math.floor( this.currentBoxID / BoxCount );
         this.setRelateTextColor( ix, iy );
         if( this.checkNumber( ix, iy ) ){
-            this.boxes[ this.currentBoxID ].setTextColor( FontColor );
+            box.setTextColor( FontColor );
+            this.effectRightNumber( box.X, box.Y );
         }else{
-            this.boxes[ this.currentBoxID ].setTextColor( 0xff0000 );
+            box.setTextColor( WrongFontColor );
         }
 
         if( this.checkClear() ){
             new GameOver();
         }
     }
+
+    setBoxOutline33(){
+
+    }
+
+    effectChooseBox( x:number, y:number ){
+        new EffectSquare( Util.w(0.50), y, Util.w(1.4), Util.h(BoxHph), EffectColor, 0.5, 1/3, 1/9 );
+        new EffectSquare( x, Util.h(0.35), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1/6, 1/2 );
+    }
+    effectRightNumber( x:number, y:number ){
+        for( let i=0 ; i<4 ; i++ ){
+            let s = Util.w(BoxWpw)*randF(0.25,1.5);
+            let v = 20;
+            let vx = randF(-v, +v);
+            let vy = randF(-v, +v);
+            new EffectSquare(x+vx*5, y+vy*5, s, s, EffectColor, 0.5, 1/2, 1/6, vx, vy).delta *= randF(0.5,1);
+            new EffectSquare(x+vy*5, y+vx*5, s, s, EffectColor, 0.5, 1/6, 1/2, vx, vy).delta *= randF(0.5,1);
+        }
+        new EffectSquare( Util.w(0.50), y, Util.w(1.5), Util.h(BoxHph*0.5), EffectColor, 0.5, 1/3, 1/9 );
+        new EffectSquare( x, Util.h(0.35), Util.w(BoxWpw*0.5), Util.h(1.5), EffectColor, 0.5, 1/6, 1/2 );
+    }
+
+
 
     setRelateBoxColor( ix:number, iy:number ){
         let numb = this.numbs[ ix + iy * BoxCount ];
@@ -185,11 +224,13 @@ class Game extends GameObject{
                 let index = i + j*BoxCount;
                 // 対象のマスを水色に
                 let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
+                let color = 0;
                 if( inBox3x3 || i == ix || j==iy ){
-                    this.boxes[ index ].setColor( RelateBoxColor );
+                    color = RelateBoxColor;
                 }else{
-                    this.boxes[ index ].setColor( BoxColor );
+                    color = this.initialNumbs[index]==0 ? BoxColor : FixedBoxColor;
                 }
+                this.boxes[ index ].setColor( color );
             }
         }
     }
@@ -201,9 +242,9 @@ class Game extends GameObject{
             for( let j=0 ; j<BoxCount ; j++ ){
                 let index = i + j*BoxCount;
                 if( this.numbs[ index ] == numb ){
-                    this.boxes[ index ].setTextColor( 0xff0000 );
+                    this.boxes[ index ].setTextColor( EqualNumbColor );
                 }else{
-                    this.boxes[ index ].setTextColor( FontColor );
+                    this.boxes[ index ].setTextColor( BoxFontColor );
                 }
             }
         }

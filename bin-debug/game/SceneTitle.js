@@ -17,7 +17,7 @@ var SceneTitle = (function (_super) {
         _this.texts = [];
         _this.startButton = null;
         _this.settingsButton = null;
-        _this.texts[0] = Util.newTextField("ナンプレ", Util.width / 9, FontColor, 0.5, 0.25, true, true);
+        _this.texts[0] = Util.newTextField("ハイパーナンプレ", Util.width / 9, FontColor, 0.5, 0.25, true, true);
         _this.texts[1] = Util.newTextField("配置入力テスト 0~9 81文字", 28, FontColor, 0.5, 0.45, true, false);
         new InputField(9 * 9, 20, FontColor, 0.5, 0.5, 0.9, 0.05, RelateBoxColor, 1, _this.inputData);
         _this.startButton = new Button("スタート", Util.width / 16, BackColor, 0.50, 0.70, 0.7, 0.12, FontColor, 1.0, -1, true, _this.onTapStart, _this);

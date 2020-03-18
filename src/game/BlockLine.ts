@@ -8,9 +8,9 @@ class BlockLine extends GameObject{
 
         let shape = new egret.Shape();
         this.display = shape;
-        GameObject.baseDisplay.addChild(shape);
+        GameObject.gameDisplay.addChild(shape);
 
-        shape.graphics.lineStyle( 5, 0x505050 );
+        shape.graphics.lineStyle( 8, FontColor );
 
         let ix;
         let iy;

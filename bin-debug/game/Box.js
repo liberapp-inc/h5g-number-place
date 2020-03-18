@@ -31,7 +31,7 @@ var Box = (function (_super) {
         _this.wr = wRatio;
         _this.hr = hRatio;
         _this.fontSize = 36;
-        _this.fontRgb = Font2Color;
+        _this.fontRgb = BoxFontColor;
         _this.setDisplay(_this.lineRgb, _this.rgb, _this.alpha, xRatio, yRatio, wRatio, hRatio);
         if (text != null) {
             _this.text = Util.newTextField(text, _this.fontSize, _this.fontRgb, _this.xr, _this.yr, bold, false);
@@ -61,13 +61,13 @@ var Box = (function (_super) {
         var shape = this.display;
         if (shape == null) {
             this.display = shape = new egret.Shape();
-            GameObject.baseDisplay.addChild(shape);
+            GameObject.gameDisplay.addChild(shape);
         }
         else {
             shape.graphics.clear();
         }
         if (lineRgb >= 0)
-            shape.graphics.lineStyle(2, lineRgb);
+            shape.graphics.lineStyle(1, lineRgb);
         else
             shape.graphics.lineStyle(0);
         shape.graphics.beginFill(rgb, alpha);

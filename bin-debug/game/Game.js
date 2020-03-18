@@ -12,12 +12,20 @@ r.prototype = e.prototype, t.prototype = new r();
 };
 var SaveKeyBestScore = "numpla-bestScore";
 var DefaultBestScore = 50;
-var BackColor = 0xf8fafc; // index.htmlで設定
-var FontColor = 0x101010;
-var Font2Color = 0xd00000;
-var BoxColor = 0xf0f0f0;
-var RelateBoxColor = 0xc0e0f0;
-var SelectBoxColor = 0xf0c080;
+var BackColor = 0x000000; // index.htmlで設定
+var FontColor = 0x00ffff;
+var BoxColor = 0x205080;
+var BoxFontColor = 0xff0060;
+var FixedBoxColor = 0x204070;
+var RelateBoxColor = 0x002040;
+var SelectBoxColor = 0x001020;
+var RightFontColor = 0x0040ff;
+var WrongFontColor = 0xffff00;
+var EqualNumbColor = 0xffff00;
+var KeyColor = 0xff50ff;
+var KeyLineColor = 0;
+var KeyFontColor = 0x200020;
+var EffectColor = 0x00ffe0;
 var BoxCount = 9;
 var BoxSizeInW = 10;
 var BoxSizeInH = 15;
@@ -61,6 +69,8 @@ var Game = (function (_super) {
                 var yr = 0.35 + (iy - 4) * BoxHph;
                 var bold = num != 0;
                 _this.boxes[i] = new Box(numText, xr, yr, BoxWpw * 0.95, BoxHph * 0.95, bold, function (btn) { return _this.onBox(btn); }, _this, i);
+                if (bold)
+                    _this.boxes[i].setColor(FixedBoxColor);
             }
         }
         // 数値キー １〜９
@@ -70,11 +80,11 @@ var Game = (function (_super) {
                 var numText = i.toFixed();
                 var xr = 0.50 + (ix - 1) * KeyWpw;
                 var yr = 0.80 + (iy - 1) * KeyHph;
-                _this.keys[i] = new Button(numText, 42, FontColor, xr, yr, KeyWpw * 0.9, KeyHph * 0.9, BoxColor, 1, FontColor, true, function (btn) { return _this.onKey(btn); }, _this, i);
+                _this.keys[i] = new Button(numText, 42, KeyFontColor, xr, yr, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onKey(btn); }, _this, i);
             }
         }
         // 削除キー
-        _this.delKey = new Button("×", 42, FontColor, 0.8, 0.8 - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, BoxColor, 1, FontColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
+        _this.delKey = new Button("×", 42, KeyFontColor, 0.8, 0.8 - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
         return _this;
     }
     Game.prototype.onBox = function (btn) {
@@ -112,7 +122,9 @@ var Game = (function (_super) {
             this.setRelateBoxColor(ix, iy);
             this.setRelateTextColor(ix, iy);
             // 対象BOXカラー
-            this.boxes[this.currentBoxID].setColor(SelectBoxColor);
+            var box = this.boxes[this.currentBoxID];
+            box.setColor(SelectBoxColor);
+            this.effectChooseBox(box.X, box.Y);
         }
         // 数字キー入力
         if (this.touchedKeyID >= 0) {
@@ -147,18 +159,38 @@ var Game = (function (_super) {
         this.numbs[this.currentBoxID] = this.touchedKeyID;
         this.boxes[this.currentBoxID].setText(this.touchedKeyID.toFixed());
         // 判定（配置上のチェック）
+        var box = this.boxes[this.currentBoxID];
         var ix = this.currentBoxID % BoxCount;
         var iy = Math.floor(this.currentBoxID / BoxCount);
         this.setRelateTextColor(ix, iy);
         if (this.checkNumber(ix, iy)) {
-            this.boxes[this.currentBoxID].setTextColor(FontColor);
+            box.setTextColor(FontColor);
+            this.effectRightNumber(box.X, box.Y);
         }
         else {
-            this.boxes[this.currentBoxID].setTextColor(0xff0000);
+            box.setTextColor(WrongFontColor);
         }
         if (this.checkClear()) {
             new GameOver();
         }
+    };
+    Game.prototype.setBoxOutline33 = function () {
+    };
+    Game.prototype.effectChooseBox = function (x, y) {
+        new EffectSquare(Util.w(0.50), y, Util.w(1.4), Util.h(BoxHph), EffectColor, 0.5, 1 / 3, 1 / 9);
+        new EffectSquare(x, Util.h(0.35), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1 / 6, 1 / 2);
+    };
+    Game.prototype.effectRightNumber = function (x, y) {
+        for (var i = 0; i < 4; i++) {
+            var s = Util.w(BoxWpw) * randF(0.25, 1.5);
+            var v = 20;
+            var vx = randF(-v, +v);
+            var vy = randF(-v, +v);
+            new EffectSquare(x + vx * 5, y + vy * 5, s, s, EffectColor, 0.5, 1 / 2, 1 / 6, vx, vy).delta *= randF(0.5, 1);
+            new EffectSquare(x + vy * 5, y + vx * 5, s, s, EffectColor, 0.5, 1 / 6, 1 / 2, vx, vy).delta *= randF(0.5, 1);
+        }
+        new EffectSquare(Util.w(0.50), y, Util.w(1.5), Util.h(BoxHph * 0.5), EffectColor, 0.5, 1 / 3, 1 / 9);
+        new EffectSquare(x, Util.h(0.35), Util.w(BoxWpw * 0.5), Util.h(1.5), EffectColor, 0.5, 1 / 6, 1 / 2);
     };
     Game.prototype.setRelateBoxColor = function (ix, iy) {
         var numb = this.numbs[ix + iy * BoxCount];
@@ -169,12 +201,14 @@ var Game = (function (_super) {
                 var index = i + j * BoxCount;
                 // 対象のマスを水色に
                 var inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
+                var color = 0;
                 if (inBox3x3 || i == ix || j == iy) {
-                    this.boxes[index].setColor(RelateBoxColor);
+                    color = RelateBoxColor;
                 }
                 else {
-                    this.boxes[index].setColor(BoxColor);
+                    color = this.initialNumbs[index] == 0 ? BoxColor : FixedBoxColor;
                 }
+                this.boxes[index].setColor(color);
             }
         }
     };
@@ -185,10 +219,10 @@ var Game = (function (_super) {
             for (var j = 0; j < BoxCount; j++) {
                 var index = i + j * BoxCount;
                 if (this.numbs[index] == numb) {
-                    this.boxes[index].setTextColor(0xff0000);
+                    this.boxes[index].setTextColor(EqualNumbColor);
                 }
                 else {
-                    this.boxes[index].setTextColor(FontColor);
+                    this.boxes[index].setTextColor(BoxFontColor);
                 }
             }
         }

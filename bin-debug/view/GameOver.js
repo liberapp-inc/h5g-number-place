@@ -19,7 +19,7 @@ var GameOver = (function (_super) {
         _this.step = 0;
         _this.fadeInFrame = 64;
         GameOver.I = _this;
-        _this.texts[0] = Util.newTextField("CLEAR!!", Util.width / 12, Font2Color, 0.5, 0.3, true, false);
+        _this.texts[0] = Util.newTextField("CLEAR!!", Util.width / 12, FontColor, 0.5, 0.3, true, false);
         egret.Tween.get(_this.texts[0], { loop: false })
             .to({ alpha: 0 }, 0)
             .to({ alpha: 1 }, 1000);
@@ -34,10 +34,10 @@ var GameOver = (function (_super) {
     GameOver.prototype.update = function () {
         this.step++;
         if (this.step == this.fadeInFrame) {
-            this.retryButton = new Button("リトライ", Util.width / 16, BackColor, 0.50, 0.55, 0.4, 0.1, Font2Color, 1.0, -1, true, this.onTapRetry, this);
+            this.retryButton = new Button("リトライ", Util.width / 16, BackColor, 0.50, 0.55, 0.4, 0.1, FontColor, 1.0, -1, true, this.onTapRetry, this);
             if (Score.I.point > Score.I.bestScore) {
                 Util.setSaveDataNumber(SaveKeyBestScore, Score.I.point);
-                this.texts[1] = Util.newTextField("NEW RECORD!", Util.width / 13, Font2Color, 0.5, 0.4, true, false);
+                this.texts[1] = Util.newTextField("NEW RECORD!", Util.width / 13, FontColor, 0.5, 0.4, true, false);
                 egret.Tween.get(this.texts[1], { loop: true })
                     .to({ alpha: 0 }, 500)
                     .to({ alpha: 1 }, 500);

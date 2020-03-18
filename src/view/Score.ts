@@ -15,7 +15,7 @@ class Score extends GameObject{
 
         Score.I = this;
         this.point = 0;
-        this.text = Util.newTextField("", Util.width / 22, Font2Color, 0.0, 0.0, true, true);
+        this.text = Util.newTextField("", Util.width / 22, FontColor, 0.0, 0.0, true, true);
         GameObject.baseDisplay.addChild( this.text );
 
         this.bestScore = Util.getSaveDataNumber( SaveKeyBestScore, DefaultBestScore );
