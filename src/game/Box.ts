@@ -28,7 +28,7 @@ class Box extends GameObject{
     constructor( text:string, xRatio:number, yRatio:number, wRatio:number, hRatio:number, bold:boolean, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
         super();
 
-        this.lineRgb = FontColor;
+        this.lineRgb = BoxLineColor;
         this.rgb = BoxColor;
         this.alpha = 1;
         this.xr = xRatio;
@@ -37,7 +37,7 @@ class Box extends GameObject{
         this.hr = hRatio;
 
         this.fontSize = 36;
-        this.fontRgb = BoxFontColor;
+        this.fontRgb = NumberColor;
 
         this.setDisplay( this.lineRgb, this.rgb, this.alpha, xRatio, yRatio, wRatio, hRatio );
 
@@ -83,8 +83,10 @@ class Box extends GameObject{
         shape.y = yr * Util.height;
         this.display = shape;
     }
+
     setColor( rgb:number ){
-        this.setDisplay( this.lineRgb, rgb, this.alpha, this.xr, this.yr, this.wr, this.hr );
+        this.rgb = rgb;
+        this.setDisplay( this.lineRgb, this.rgb, this.alpha, this.xr, this.yr, this.wr, this.hr );
     }
 
     setText( text:string ){
@@ -119,6 +121,11 @@ class Box extends GameObject{
         this.text.size = this.fontSize * 0.5;
         tf.x = Util.width  * this.xr - tf.width  * 0.5;
         tf.y = Util.height * this.yr - tf.height * 0.5;
+    }
+
+    setOutline( lineRgb:number ){
+        this.lineRgb = lineRgb;
+        this.setDisplay( this.lineRgb, this.rgb, this.alpha, this.xr, this.yr, this.wr, this.hr );
     }
 
     update() {

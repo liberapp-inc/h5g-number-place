@@ -1,5 +1,5 @@
 // Liberapp 2020 - Tahiti Katagai
-// エフェクト　四角
+// エフェクト　四角いライン
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
@@ -10,9 +10,9 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
-var EffectSquare = (function (_super) {
-    __extends(EffectSquare, _super);
-    function EffectSquare(x, y, w, h, color, alpha, wr, hr, vx, vy) {
+var EffectFrame = (function (_super) {
+    __extends(EffectFrame, _super);
+    function EffectFrame(x, y, w, h, color, alpha, wr, hr, vx, vy) {
         if (wr === void 0) { wr = 1 / 4; }
         if (hr === void 0) { hr = 1 / 8; }
         if (vx === void 0) { vx = 0; }
@@ -38,7 +38,7 @@ var EffectSquare = (function (_super) {
         _this.setShape(x + vx, y + vy, _this.w, _this.h, color, _this.maxA);
         return _this;
     }
-    EffectSquare.prototype.setShape = function (x, y, w, h, color, alpha) {
+    EffectFrame.prototype.setShape = function (x, y, w, h, color, alpha) {
         var shape = this.display;
         if (this.display == null) {
             this.display = shape = new egret.Shape();
@@ -49,11 +49,10 @@ var EffectSquare = (function (_super) {
         }
         shape.x = x;
         shape.y = y;
-        shape.graphics.beginFill(color, alpha);
+        shape.graphics.lineStyle(10, color, alpha);
         shape.graphics.drawRect(-0.5 * w, -0.5 * h, w, h);
-        shape.graphics.endFill();
     };
-    EffectSquare.prototype.update = function () {
+    EffectFrame.prototype.update = function () {
         this.X += this.vx;
         this.Y += this.vy;
         this.vx *= this.vr;
@@ -75,7 +74,7 @@ var EffectSquare = (function (_super) {
             return;
         }
     };
-    return EffectSquare;
+    return EffectFrame;
 }(GameObject));
-__reflect(EffectSquare.prototype, "EffectSquare");
-//# sourceMappingURL=EffectSquare.js.map
+__reflect(EffectFrame.prototype, "EffectFrame");
+//# sourceMappingURL=EffectFrame.js.map

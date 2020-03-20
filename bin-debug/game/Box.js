@@ -23,7 +23,7 @@ var Box = (function (_super) {
         _this.touch = false;
         _this.x = 0;
         _this.y = 0;
-        _this.lineRgb = FontColor;
+        _this.lineRgb = BoxLineColor;
         _this.rgb = BoxColor;
         _this.alpha = 1;
         _this.xr = xRatio;
@@ -31,7 +31,7 @@ var Box = (function (_super) {
         _this.wr = wRatio;
         _this.hr = hRatio;
         _this.fontSize = 36;
-        _this.fontRgb = BoxFontColor;
+        _this.fontRgb = NumberColor;
         _this.setDisplay(_this.lineRgb, _this.rgb, _this.alpha, xRatio, yRatio, wRatio, hRatio);
         if (text != null) {
             _this.text = Util.newTextField(text, _this.fontSize, _this.fontRgb, _this.xr, _this.yr, bold, false);
@@ -81,7 +81,8 @@ var Box = (function (_super) {
         this.display = shape;
     };
     Box.prototype.setColor = function (rgb) {
-        this.setDisplay(this.lineRgb, rgb, this.alpha, this.xr, this.yr, this.wr, this.hr);
+        this.rgb = rgb;
+        this.setDisplay(this.lineRgb, this.rgb, this.alpha, this.xr, this.yr, this.wr, this.hr);
     };
     Box.prototype.setText = function (text) {
         var tf = this.text;
@@ -113,6 +114,10 @@ var Box = (function (_super) {
         this.text.size = this.fontSize * 0.5;
         tf.x = Util.width * this.xr - tf.width * 0.5;
         tf.y = Util.height * this.yr - tf.height * 0.5;
+    };
+    Box.prototype.setOutline = function (lineRgb) {
+        this.lineRgb = lineRgb;
+        this.setDisplay(this.lineRgb, this.rgb, this.alpha, this.xr, this.yr, this.wr, this.hr);
     };
     Box.prototype.update = function () {
         var scale = this.touch ? 0.95 : 1.0;

@@ -1,7 +1,7 @@
 // Liberapp 2020 - Tahiti Katagai
-// エフェクト　四角
+// エフェクト　四角いライン
 
-class EffectSquare extends GameObject{
+class EffectFrame extends GameObject{
 
     w:number = 0;
     h:number = 0;
@@ -46,9 +46,8 @@ class EffectSquare extends GameObject{
 
         shape.x = x;
         shape.y = y;
-        shape.graphics.beginFill( color, alpha );
+        shape.graphics.lineStyle( 10, color, alpha );
         shape.graphics.drawRect( -0.5*w, -0.5*h, w, h );
-        shape.graphics.endFill();
     }
 
     update() {
