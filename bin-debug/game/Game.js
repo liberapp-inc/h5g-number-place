@@ -10,8 +10,7 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
-var SaveKeyBestScore = "numpla-bestScore";
-var DefaultBestScore = 50;
+var SaveKeyClearTime = "HyperSudokuClearTime"; // +問題番号Keyにクリア時間を記録
 var BackColor = 0x000000; // index.htmlで設定
 var FontColor = 0x00ffff;
 var BoxColor = 0x205080;
@@ -24,9 +23,9 @@ var FixedNumberColor = 0xff0060;
 var RightNumberColor = 0x00ffff;
 var WrongNumberColor = 0xffff00;
 var EqualNumberColor = 0xffff00;
-var KeyColor = 0xff50ff;
-var KeyLineColor = 0x803080;
-var KeyFontColor = 0x200020;
+var KeyColor = FontColor; //0xff50ff;
+var KeyLineColor = FontColor; //0x803080;
+var KeyFontColor = BackColor; //0x200020;
 var EffectColor = 0x00ffe0;
 var BoxCount = 9;
 var BoxSizeInW = 10;
@@ -37,11 +36,15 @@ var KeyInW = 8;
 var KeyInH = 12;
 var KeyWpw = 1 / KeyInW;
 var KeyHph = 1 / KeyInH;
+var BoxCenterXpw = 0.50;
+var BoxCenterYph = 0.40;
+var KeyCenterXpw = 0.50;
+var KeyCenterYph = 0.85;
 var Game = (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
-        _this.counter = 0;
+        _this.texts = [];
         _this.localTouchBegan = false;
         _this.press = false;
         _this.touch = false;
@@ -56,6 +59,11 @@ var Game = (function (_super) {
         _this.touchedBoxID = -1;
         _this.touchedKeyID = -1;
         Game.I = _this;
+        _this.timer = new Timer();
+        _this.texts[0] = Util.newTextField("問題" + (Game.initialGame + 1), Util.width / 20, FontColor, 0.5, 0.05, true, true);
+        _this.texts.forEach(function (text) { if (text) {
+            GameObject.baseDisplay.addChild(text);
+        } });
         // マスボタン９ｘ９
         for (var ix = 0; ix < BoxCount; ix++) {
             for (var iy = 0; iy < BoxCount; iy++) {
@@ -67,8 +75,8 @@ var Game = (function (_super) {
                 _this.notes[i] = 0;
                 if (num == 0)
                     numText = "";
-                var xr = 0.50 + (ix - 4) * BoxWpw;
-                var yr = 0.35 + (iy - 4) * BoxHph;
+                var xr = BoxCenterXpw + (ix - 4) * BoxWpw;
+                var yr = BoxCenterYph + (iy - 4) * BoxHph;
                 var bold = num != 0;
                 _this.boxes[i] = new Box(numText, xr, yr, BoxWpw * 0.95, BoxHph * 0.95, bold, function (btn) { return _this.onBox(btn); }, _this, i);
                 if (bold) {
@@ -82,13 +90,15 @@ var Game = (function (_super) {
             for (var iy = 0; iy < 3; iy++) {
                 var i = 1 + ix + iy * 3;
                 var numText = i.toFixed();
-                var xr = 0.50 + (ix - 1) * KeyWpw;
-                var yr = 0.80 + (iy - 1) * KeyHph;
+                var xr = KeyCenterXpw + (ix - 1) * KeyWpw;
+                var yr = KeyCenterYph + (iy - 1) * KeyHph;
                 _this.keys[i] = new Button(numText, 42, KeyFontColor, xr, yr, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onKey(btn); }, _this, i);
             }
         }
         // 削除キー
-        _this.delKey = new Button("×", 42, KeyFontColor, 0.8, 0.8 - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
+        _this.delKey = new Button("×", 42, KeyFontColor, 0.8, KeyCenterYph - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
+        // Backキー
+        _this.delKey = new Button("◀", 30, KeyFontColor, 0.05, 0.04, KeyWpw * 0.7, KeyHph * 0.7, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onBackKey(btn); }, _this);
         return _this;
     }
     Game.prototype.onBox = function (btn) {
@@ -107,15 +117,22 @@ var Game = (function (_super) {
             }
         }
     };
+    Game.prototype.onBackKey = function (btn) {
+        GameObject.transit = SceneSelect.loadScene;
+    };
     Game.prototype.onDestroy = function () {
         Game.I = null;
+        this.texts.forEach(function (text) { if (text) {
+            text.parent.removeChild(text);
+        } });
+        this.texts = null;
     };
     Game.prototype.update = function () {
         if (GameOver.I != null)
             return;
         // マス選択　カラー変更
         var num;
-        if (this.touchedBoxID >= 0) {
+        if (this.touchedBoxID >= 0 && this.touchedBoxID != this.currentBoxID) {
             if (this.currentBoxID >= 0) {
                 this.boxes[this.currentBoxID].setColor(BoxColor);
                 this.boxes[this.currentBoxID].setTextColor(NumberColor);
@@ -188,6 +205,8 @@ var Game = (function (_super) {
         this.updateBoxOutline3x3(ix, iy);
         if (this.checkClear()) {
             new GameOver();
+            if (Util.getSaveDataNumber(SaveKeyClearTime + Game.initialGame, 999) > Score.I.point)
+                Util.setSaveDataNumber(SaveKeyClearTime + Game.initialGame, Score.I.point);
         }
     };
     Game.prototype.updateBoxOutline3x3 = function (ix, iy) {
@@ -218,7 +237,7 @@ var Game = (function (_super) {
     };
     Game.prototype.effectChooseBox = function (px, py) {
         new EffectSquare(Util.w(randF(0.2, 0.8)), py, Util.w(1.4), Util.h(BoxHph), EffectColor, 0.5, 1 / 3, 1 / 9);
-        new EffectSquare(px, Util.h(randF(0.35 - 0.2, 0.35 + 0.2)), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1 / 6, 1 / 2);
+        new EffectSquare(px, Util.h(BoxCenterXpw + randF(-0.2, +0.2)), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1 / 6, 1 / 2);
     };
     Game.prototype.effectRightNumber = function (px, py) {
         for (var i = 0; i < 0; i++) {
@@ -230,7 +249,7 @@ var Game = (function (_super) {
             new EffectFrame(px + vy * 5, py + vx * 5, s, s, EffectColor, 0.5, 1 / 6, 1 / 2, vx, vy).delta *= randF(0.5, 1);
         }
         new EffectFrame(Util.w(0.50), py, Util.w(1.5), Util.h(BoxHph * 0.5), EffectColor, 0.5, 1 / 3, 1 / 9);
-        new EffectFrame(px, Util.h(0.35), Util.w(BoxWpw * 0.5), Util.h(1.5), EffectColor, 0.5, 1 / 6, 1 / 2);
+        new EffectFrame(px, Util.h(BoxCenterXpw), Util.w(BoxWpw * 0.5), Util.h(1.5), EffectColor, 0.5, 1 / 6, 1 / 2);
         // chainer
         new EffectChainer(0, px, py, +Util.w(BoxWpw), 0, 5);
         new EffectChainer(0, px, py, -Util.w(BoxWpw), 0, 5);

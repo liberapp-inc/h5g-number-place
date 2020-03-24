@@ -30,8 +30,8 @@ class BlockLine extends GameObject{
         this.setRectLine( shape, 7, 7 );
     }
     setRectLine( shape:egret.Shape, ix:number, iy:number ){
-        let x = Util.w( 0.50 + (ix-4) * BoxWpw );
-        let y = Util.h( 0.35 + (iy-4) * BoxHph );
+        let x = Util.w( BoxCenterXpw + (ix-4) * BoxWpw );
+        let y = Util.h( BoxCenterYph + (iy-4) * BoxHph );
         let w = Util.w( BoxWpw ) * 3;
         let h = Util.h( BoxHph ) * 3;
         shape.graphics.drawRect( x-0.5*w, y-0.5*h, w, h );

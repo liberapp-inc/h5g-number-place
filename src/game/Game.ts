@@ -1,8 +1,7 @@
 // Liberapp 2020 - Tahiti Katagai
 // ゲーム
 
-const SaveKeyBestScore = "numpla-bestScore";
-const DefaultBestScore = 50;
+const SaveKeyClearTime = "HyperSudokuClearTime";    // +問題番号Keyにクリア時間を記録
 
 const BackColor = 0x000000;    // index.htmlで設定
 const FontColor = 0x00ffff;
@@ -19,9 +18,9 @@ const RightNumberColor = 0x00ffff;
 const WrongNumberColor = 0xffff00;
 const EqualNumberColor = 0xffff00;
 
-const KeyColor = 0xff50ff;
-const KeyLineColor = 0x803080;
-const KeyFontColor = 0x200020;
+const KeyColor = FontColor;//0xff50ff;
+const KeyLineColor = FontColor; //0x803080;
+const KeyFontColor = BackColor;//0x200020;
 
 const EffectColor = 0x00ffe0;
 
@@ -35,13 +34,20 @@ const KeyInH = 12;
 const KeyWpw = 1/KeyInW;
 const KeyHph = 1/KeyInH;
 
+const BoxCenterXpw = 0.50;
+const BoxCenterYph = 0.40;
+const KeyCenterXpw = 0.50;
+const KeyCenterYph = 0.85;
+
 class Game extends GameObject{
 
     static I:Game;
+    static initialGame:number;
     static initialData:string = "008000010041700293293540070036900000007000800000005740080072961614009520070000300";
 
-    counter:number = 0;
-
+    timer:Timer;
+    texts:egret.TextField[] = [];
+    
     private localTouchBegan:boolean = false;
     press:boolean = false;
     touch:boolean = false;
@@ -64,6 +70,11 @@ class Game extends GameObject{
         super();
         Game.I = this;
 
+        this.timer = new Timer();
+
+        this.texts[0] = Util.newTextField("問題"+(Game.initialGame+1), Util.width / 20, FontColor, 0.5, 0.05, true, true);
+        this.texts.forEach( text =>{ if( text ){ GameObject.baseDisplay.addChild( text ); } });
+
         // マスボタン９ｘ９
         for( let ix=0 ; ix<BoxCount ; ix++ ){
             for( let iy=0 ; iy<BoxCount ; iy++ ){
@@ -75,8 +86,8 @@ class Game extends GameObject{
                 this.notes[ i ] = 0;
 
                 if( num == 0 ) numText = "";
-                let xr = 0.50 + (ix-4) * BoxWpw;
-                let yr = 0.35 + (iy-4) * BoxHph;
+                let xr = BoxCenterXpw + (ix-4) * BoxWpw;
+                let yr = BoxCenterYph + (iy-4) * BoxHph;
                 let bold = num != 0;
                 this.boxes[ i ] = new Box( numText, xr, yr, BoxWpw*0.95, BoxHph*0.95, bold, (btn:Box)=>this.onBox(btn), this, i );
                 if( bold ){
@@ -91,13 +102,15 @@ class Game extends GameObject{
             for( let iy=0 ; iy<3 ; iy++ ){
                 let i = 1 + ix + iy*3;
                 let numText = i.toFixed();
-                let xr = 0.50 + (ix-1) * KeyWpw;
-                let yr = 0.80 + (iy-1) * KeyHph;
+                let xr = KeyCenterXpw + (ix-1) * KeyWpw;
+                let yr = KeyCenterYph + (iy-1) * KeyHph;
                 this.keys[ i ] = new Button( numText, 42, KeyFontColor, xr, yr, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onKey(btn), this, i );
             }
         }
         // 削除キー
-        this.delKey = new Button( "×", 42, KeyFontColor, 0.8, 0.8-KeyHph, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onDelKey(btn), this );
+        this.delKey = new Button( "×", 42, KeyFontColor, 0.8, KeyCenterYph-KeyHph, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onDelKey(btn), this );
+        // Backキー
+        this.delKey = new Button( "◀", 30, KeyFontColor, 0.05, 0.04, KeyWpw*0.7, KeyHph*0.7, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onBackKey(btn), this );
     }
 
     onBox( btn:Box ){
@@ -115,10 +128,15 @@ class Game extends GameObject{
                 this.setBoxNumber( this.currentBoxID, 0 );
             }
         }
+    }
+    onBackKey( btn:Button ){
+        GameObject.transit = SceneSelect.loadScene;
     }   
 
 	onDestroy(){
         Game.I = null;
+        this.texts.forEach( text =>{ if( text ){ text.parent.removeChild( text ); } });
+        this.texts = null;
     }
 
 	update(){
@@ -126,7 +144,7 @@ class Game extends GameObject{
 
         // マス選択　カラー変更
         let num;
-        if( this.touchedBoxID >= 0 ){
+        if( this.touchedBoxID >= 0 && this.touchedBoxID != this.currentBoxID ){
             if( this.currentBoxID >= 0 ){
                 this.boxes[ this.currentBoxID ].setColor( BoxColor );
                 this.boxes[ this.currentBoxID ].setTextColor( NumberColor );
@@ -205,6 +223,8 @@ class Game extends GameObject{
 
         if( this.checkClear() ){
             new GameOver();
+            if( Util.getSaveDataNumber(SaveKeyClearTime+Game.initialGame, 999) > Score.I.point )
+                Util.setSaveDataNumber( SaveKeyClearTime+Game.initialGame, Score.I.point );
         }
     }
 
@@ -240,7 +260,7 @@ class Game extends GameObject{
 
     effectChooseBox( px:number, py:number ){
         new EffectSquare( Util.w(randF(0.2,0.8)), py, Util.w(1.4), Util.h(BoxHph), EffectColor, 0.5, 1/3, 1/9 );
-        new EffectSquare( px, Util.h(randF(0.35-0.2,0.35+0.2)), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1/6, 1/2 );
+        new EffectSquare( px, Util.h(BoxCenterXpw+randF(-0.2,+0.2)), Util.w(BoxWpw), Util.h(1.4), EffectColor, 0.5, 1/6, 1/2 );
     }
     effectRightNumber( px:number, py:number ){
         for( let i=0 ; i<0 ; i++ ){
@@ -252,7 +272,7 @@ class Game extends GameObject{
             new EffectFrame(px+vy*5, py+vx*5, s, s, EffectColor, 0.5, 1/6, 1/2, vx, vy).delta *= randF(0.5,1);
         }
         new EffectFrame( Util.w(0.50), py, Util.w(1.5), Util.h(BoxHph*0.5), EffectColor, 0.5, 1/3, 1/9 );
-        new EffectFrame( px, Util.h(0.35), Util.w(BoxWpw*0.5), Util.h(1.5), EffectColor, 0.5, 1/6, 1/2 );
+        new EffectFrame( px, Util.h(BoxCenterXpw), Util.w(BoxWpw*0.5), Util.h(1.5), EffectColor, 0.5, 1/6, 1/2 );
 
         // chainer
         new EffectChainer( 0, px, py, +Util.w(BoxWpw), 0, 5 );

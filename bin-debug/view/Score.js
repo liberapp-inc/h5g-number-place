@@ -20,18 +20,14 @@ var Score = (function (_super) {
         _this.text = null;
         Score.I = _this;
         _this.point = 0;
-        _this.text = Util.newTextField("", Util.width / 22, FontColor, 0.0, 0.0, true, true);
+        _this.text = Util.newTextField("TIME:0", Util.width / 28, FontColor, 0.9, 0.02, true, true);
         GameObject.baseDisplay.addChild(_this.text);
-        _this.bestScore = Util.getSaveDataNumber(SaveKeyBestScore, DefaultBestScore);
+        _this.bestScore = Util.getSaveDataNumber(SaveKeyClearTime + Game.initialGame, 999);
         return _this;
-        //?? test ハイスコアいつでもテスト用
-        // this.bestScore = 3;
     }
     Score.prototype.onDestroy = function () {
         this.text.parent.removeChild(this.text);
         this.text = null;
-        // this.textBest.parent.removeChild( this.textBest );
-        // this.textBest = null;
         Score.I = null;
     };
     Score.prototype.update = function () { };
@@ -40,12 +36,11 @@ var Score = (function (_super) {
         this.setPoint(this.point + point);
     };
     Score.prototype.setPoint = function (point) {
-        // if(this.Meter != 0) g.drawString("走行距離:"+this.count+"M",10,35);
         var prev = this.point.toFixed();
         var next = point.toFixed();
-        this.point = point;
         if (prev != next) {
-            this.text.text = "" + next + "";
+            this.point = point;
+            this.text.text = "TIME:" + next;
             // if( this.bestScore < this.point ){
             //     this.textBest.text = "BEST:" + this.point.toFixed();
             // }

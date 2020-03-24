@@ -36,8 +36,8 @@ var BlockLine = (function (_super) {
         return _this;
     }
     BlockLine.prototype.setRectLine = function (shape, ix, iy) {
-        var x = Util.w(0.50 + (ix - 4) * BoxWpw);
-        var y = Util.h(0.35 + (iy - 4) * BoxHph);
+        var x = Util.w(BoxCenterXpw + (ix - 4) * BoxWpw);
+        var y = Util.h(BoxCenterYph + (iy - 4) * BoxHph);
         var w = Util.w(BoxWpw) * 3;
         var h = Util.h(BoxHph) * 3;
         shape.graphics.drawRect(x - 0.5 * w, y - 0.5 * h, w, h);
