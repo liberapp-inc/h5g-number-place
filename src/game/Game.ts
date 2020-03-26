@@ -110,7 +110,7 @@ class Game extends GameObject{
         // 削除キー
         this.delKey = new Button( "×", 42, KeyFontColor, 0.8, KeyCenterYph-KeyHph, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onDelKey(btn), this );
         // Backキー
-        this.delKey = new Button( "◀", 30, KeyFontColor, 0.05, 0.04, KeyWpw*0.7, KeyHph*0.7, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onBackKey(btn), this );
+        this.delKey = new Button( "<", 30, KeyFontColor, 0.05, 0.04, KeyWpw*0.7, KeyHph*0.7, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onBackKey(btn), this );
     }
 
     onBox( btn:Box ){

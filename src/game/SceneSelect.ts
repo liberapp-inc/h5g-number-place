@@ -116,7 +116,7 @@ class SceneSelect extends GameObject{
             }
         }
 
-        this.backButton = new Button("◀", Util.width/20, BackColor, 0.10, 0.10, BoxWpw, BoxHph, FontColor, 1.0, -1, true, this.onTapBack, this );
+        this.backButton = new Button("<", Util.width/20, BackColor, 0.10, 0.10, BoxWpw, BoxHph, FontColor, 1.0, -1, true, this.onTapBack, this );
     }
 
 	onDestroy(){

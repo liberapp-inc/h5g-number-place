@@ -34,7 +34,7 @@ var SceneSelect = (function (_super) {
                 _this.games[index] = new Button("" + (index + 1), Util.width / 20, BackColor, xr, yr, BoxWpw * 0.85, BoxHph * 0.85, color, 1.0, -1, true, function (btn) { return _this.onTapGames(btn); }, _this, index);
             }
         }
-        _this.backButton = new Button("◀", Util.width / 20, BackColor, 0.10, 0.10, BoxWpw, BoxHph, FontColor, 1.0, -1, true, _this.onTapBack, _this);
+        _this.backButton = new Button("<", Util.width / 20, BackColor, 0.10, 0.10, BoxWpw, BoxHph, FontColor, 1.0, -1, true, _this.onTapBack, _this);
         return _this;
     }
     SceneSelect.loadScene = function () {
