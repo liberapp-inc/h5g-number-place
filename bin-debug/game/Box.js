@@ -23,15 +23,15 @@ var Box = (function (_super) {
         _this.touch = false;
         _this.x = 0;
         _this.y = 0;
-        _this.lineRgb = BoxLineColor;
-        _this.rgb = BoxColor;
+        _this.lineRgb = 0; //BoxLineColor;
+        _this.rgb = ColorCellNone; // BoxColor;
         _this.alpha = 1;
         _this.xr = xRatio;
         _this.yr = yRatio;
         _this.wr = wRatio;
         _this.hr = hRatio;
         _this.fontSize = 36;
-        _this.fontRgb = NumberColor;
+        _this.fontRgb = ColorFontNone;
         _this.setDisplay(_this.lineRgb, _this.rgb, _this.alpha, xRatio, yRatio, wRatio, hRatio);
         if (text != null) {
             _this.text = Util.newTextField(text, _this.fontSize, _this.fontRgb, _this.xr, _this.yr, bold, false);
@@ -66,10 +66,8 @@ var Box = (function (_super) {
         else {
             shape.graphics.clear();
         }
-        if (lineRgb >= 0)
-            shape.graphics.lineStyle(1, lineRgb);
-        else
-            shape.graphics.lineStyle(0);
+        // if( lineRgb>=0 )    shape.graphics.lineStyle( 1, lineRgb );
+        // else                shape.graphics.lineStyle( 0 );
         shape.graphics.beginFill(rgb, alpha);
         var w = wr * Util.width;
         var h = hr * Util.height;

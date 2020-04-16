@@ -28,8 +28,8 @@ class Box extends GameObject{
     constructor( text:string, xRatio:number, yRatio:number, wRatio:number, hRatio:number, bold:boolean, onTap:(btn:Button)=>void, thisObject:any, id:number=0 ) {
         super();
 
-        this.lineRgb = BoxLineColor;
-        this.rgb = BoxColor;
+        this.lineRgb = 0; //BoxLineColor;
+        this.rgb = ColorCellNone// BoxColor;
         this.alpha = 1;
         this.xr = xRatio;
         this.yr = yRatio;
@@ -37,7 +37,7 @@ class Box extends GameObject{
         this.hr = hRatio;
 
         this.fontSize = 36;
-        this.fontRgb = NumberColor;
+        this.fontRgb = ColorFontNone;
 
         this.setDisplay( this.lineRgb, this.rgb, this.alpha, xRatio, yRatio, wRatio, hRatio );
 
@@ -71,8 +71,8 @@ class Box extends GameObject{
         }else{
             shape.graphics.clear();
         }
-        if( lineRgb>=0 )    shape.graphics.lineStyle( 1, lineRgb );
-        else                shape.graphics.lineStyle( 0 );
+        // if( lineRgb>=0 )    shape.graphics.lineStyle( 1, lineRgb );
+        // else                shape.graphics.lineStyle( 0 );
         shape.graphics.beginFill( rgb, alpha );
         let w = wr * Util.width;
         let h = hr * Util.height;

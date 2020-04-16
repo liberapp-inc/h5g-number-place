@@ -3,22 +3,52 @@
 
 const SaveKeyClearTime = "HyperSudokuClearTime";    // +問題番号Keyにクリア時間を記録
 
-const BackColor = 0x000000;    // index.htmlで設定
-const FontColor = 0x00ffff;
+const BackColor = 0xffffff;    // index.htmlで設定
+const FontColor = 0x00e8e8;
 
-const BoxColor = 0x205080;
-const BoxLineColor = 0x00ffff;
-const FixedBoxColor  = 0x203868;
-const RelateBoxColor = 0x002040;
-const SelectBoxColor = 0x001020;
+// 未入力
+const ColorCellNone = 0xCFDCE5;
+const ColorFontNone = 0x5C9399;
+// 問題 固定数値
+const ColorCellFixed = 0xA3BBCC;
+const ColorFontFixed = ColorFontNone;
+// 入力済み 
+const ColorCellEnter = ColorCellNone;
+const ColorFontEnter = 0x203868;
+// 選択
+const ColorCellPick = 0xFFFF00;
+const ColorFontPick = 0x203868;
+const ColorCellPickEnter = ColorCellNone;
+const ColorFontPickEnter = 0x203868;
+const ColorCellPickFixed = 0xA3BBCC;
+const ColorFontPickFixed = ColorFontNone;
+// 選択と同じ数
+const ColorCellEqual = ColorCellNone; //0x203868; おそらく指示間違い
+const ColorFontEqual = ColorCellPick;
+const ColorCellEqualFixed = 0xA3BBCC;
+const ColorFontEqualFixed = ColorCellPick;
+// ガイド　未入力　入力済み
+const ColorCellGuide = 0xE2E1CF;
+const ColorFontGuide = ColorFontEnter;
+const ColorFontGuideFixed = 0x5CB399;
 
-const NumberColor = 0x00ffff;
-const FixedNumberColor = 0xff0060;
-const RightNumberColor = 0x00ffff;
-const WrongNumberColor = 0xffff00;
-const EqualNumberColor = 0xffff00;
 
-const KeyColor = FontColor;//0xff50ff;
+
+
+
+// const BoxColor = 0x205080;
+// const BoxLineColor = 0x00ffff;
+// const FixedBoxColor  = 0x203868;
+// const RelateBoxColor = 0x002040;
+// const SelectBoxColor = 0x001020;
+
+// const NumberColor = 0x00ffff;
+// const FixedNumberColor = 0xff0060;
+// const RightNumberColor = 0x00ffff;
+// const WrongNumberColor = 0xffff00;
+// const EqualNumberColor = 0xffff00;
+
+const KeyColor = FontColor;     //0xff50ff;
 const KeyLineColor = FontColor; //0x803080;
 const KeyFontColor = BackColor;//0x200020;
 
@@ -88,11 +118,14 @@ class Game extends GameObject{
                 if( num == 0 ) numText = "";
                 let xr = BoxCenterXpw + (ix-4) * BoxWpw;
                 let yr = BoxCenterYph + (iy-4) * BoxHph;
-                let bold = num != 0;
-                this.boxes[ i ] = new Box( numText, xr, yr, BoxWpw*0.95, BoxHph*0.95, bold, (btn:Box)=>this.onBox(btn), this, i );
-                if( bold ){
-                    this.boxes[ i ].setColor( FixedBoxColor );
-                    this.boxes[ i ].setTextColor( FixedNumberColor );
+                let fixed = num != 0;
+                this.boxes[ i ] = new Box( numText, xr, yr, BoxWpw*0.95, BoxHph*0.95, true, (btn:Box)=>this.onBox(btn), this, i );
+                if( fixed == false ){
+                    this.boxes[ i ].setColor( ColorCellNone );
+                    this.boxes[ i ].setTextColor( ColorFontNone );
+                }else{
+                    this.boxes[ i ].setColor( ColorCellFixed );
+                    this.boxes[ i ].setTextColor( ColorFontFixed );
                 }
             }
         }
@@ -146,19 +179,25 @@ class Game extends GameObject{
         let num;
         if( this.touchedBoxID >= 0 && this.touchedBoxID != this.currentBoxID ){
             if( this.currentBoxID >= 0 ){
-                this.boxes[ this.currentBoxID ].setColor( BoxColor );
-                this.boxes[ this.currentBoxID ].setTextColor( NumberColor );
+                if( this.initialNumbs[ this.currentBoxID ] == 0 ){
+                    this.boxes[ this.currentBoxID ].setColor( ColorCellPick );
+                    this.boxes[ this.currentBoxID ].setTextColor( ColorFontPick );
+                }else{
+                    this.boxes[ this.currentBoxID ].setColor( ColorCellPickFixed );
+                    this.boxes[ this.currentBoxID ].setTextColor( ColorFontPickFixed );
+                }
             }
             this.currentBoxID = this.touchedBoxID;
 
             // 対象エリアカラー
             let ix = this.currentBoxID % BoxCount;
             let iy = Math.floor( this.currentBoxID / BoxCount );
-            this.setRelateBoxColor( ix, iy );
-            this.setRelateTextColor( ix, iy, this.numbs[ this.currentBoxID ] );
+            this.setGuideBoxColor( ix, iy );
+            this.setEqualTextColor( ix, iy, this.numbs[ this.currentBoxID ] );
             // 対象BOXカラー
             let box = this.boxes[ this.currentBoxID ];
-            box.setColor( SelectBoxColor );
+            box.setColor( ColorCellPick );
+            box.setTextColor( ColorFontPick );
             this.effectChooseBox( box.X, box.Y );
         }
         
@@ -175,7 +214,8 @@ class Game extends GameObject{
                             if( (this.notes[ this.currentBoxID ] & (1<<this.touchedKeyID)) != 0 ){
                                 const ix = this.currentBoxID % BoxCount;
                                 const iy = Math.floor( this.currentBoxID / BoxCount );
-                                this.setRelateTextColor(ix, iy, this.touchedKeyID );
+                                this.setGuideBoxColor( ix, iy );
+                                this.setEqualTextColor(ix, iy, this.touchedKeyID );
                                 if( this.checkNumber( ix, iy, this.touchedKeyID ) ){
                                     const box = this.boxes[ this.currentBoxID ];
                                     this.effectRightNumber( box.X, box.Y );
@@ -211,12 +251,13 @@ class Game extends GameObject{
         let box = this.boxes[ boxID ];
         let ix = boxID % BoxCount;
         let iy = Math.floor( boxID / BoxCount );
-        this.setRelateTextColor( ix, iy, numb );
+        this.setGuideBoxColor( ix, iy );
+        this.setEqualTextColor( ix, iy, numb );
         if( this.checkNumber( ix, iy, numb ) ){
-            box.setTextColor( NumberColor );
+            box.setTextColor( ColorFontEnter ); // NumberColor );
             this.effectRightNumber( box.X, box.Y );
         }else{
-            box.setTextColor( WrongNumberColor );
+            box.setTextColor( ColorFontEnter ); //ColorFontEnterWrong );
         }
 
         this.updateBoxOutline3x3( ix, iy );
@@ -229,17 +270,17 @@ class Game extends GameObject{
     }
 
     updateBoxOutline3x3( ix:number, iy:number ){
-        let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
+        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
 
-        let headX = Math.floor(ix/3) * 3;
-        let headY = Math.floor(iy/3) * 3;
-        for( let i=0 ; i<3 ; i++ ){
-            for( let j=0 ; j<3 ; j++ ){
-                let x = headX + i;
-                let y = headY + j;
-                this.boxes[ x + y*BoxCount ].setOutline( lineRgb );
-            }
-        }
+        // let headX = Math.floor(ix/3) * 3;
+        // let headY = Math.floor(iy/3) * 3;
+        // for( let i=0 ; i<3 ; i++ ){
+        //     for( let j=0 ; j<3 ; j++ ){
+        //         let x = headX + i;
+        //         let y = headY + j;
+        //         this.boxes[ x + y*BoxCount ].setOutline( lineRgb );
+        //     }
+        // }
     }
 
     checkNumber3x3( ix:number, iy:number ):boolean{
@@ -282,7 +323,7 @@ class Game extends GameObject{
     }
 
 
-    setRelateBoxColor( ix:number, iy:number ){
+    setGuideBoxColor( ix:number, iy:number ){
         let numb = this.numbs[ ix + iy * BoxCount ];
         let headX = Math.floor(ix/3) * 3;
         let headY = Math.floor(iy/3) * 3;
@@ -290,63 +331,58 @@ class Game extends GameObject{
         for( let i=0 ; i<BoxCount ; i++ ){
             for( let j=0 ; j<BoxCount ; j++ ){
                 let index = i + j*BoxCount;
+                let box = this.boxes[ index ];
                 // 対象のマスを水色に
                 let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
-                let color = 0;
                 if( inBox3x3 || i == ix || j==iy ){
-                    color = RelateBoxColor;
+                    if( this.initialNumbs[index]==0 ){
+                        box.setColor( ColorCellGuide );
+                        box.setTextColor( ColorFontGuide );
+                    }else{
+                        box.setColor( ColorCellGuide );
+                        box.setTextColor( ColorFontGuideFixed );
+                    }
                 }else{
-                    color = this.initialNumbs[index]==0 ? BoxColor : FixedBoxColor;
+                    // const fixed = this.initialNumbs[index]==0 ? ColorCellNone : ColorCellFixed; // BoxColor : FixedBoxColor;
+                    if( this.initialNumbs[index]==0 ){
+                        if( numb == 0 ){
+                            box.setColor( ColorCellNone );
+                            box.setTextColor( ColorFontNone );
+                        }else{
+                            box.setColor( ColorCellEnter );
+                            box.setTextColor( ColorFontEnter );
+                        }
+                    }else{
+                        box.setColor( ColorCellFixed );
+                        box.setTextColor( ColorFontFixed );
+                    }
                 }
-                this.boxes[ index ].setColor( color );
             }
         }
     }
 
-    setRelateTextColor( ix:number, iy:number, numb:number ){
+    setEqualTextColor( ix:number, iy:number, numb:number ){
         //let numb = this.numbs[ ix + iy * BoxCount ];
         // 同じ数値を強調
         for( let i=0 ; i<BoxCount ; i++ ){
             for( let j=0 ; j<BoxCount ; j++ ){
                 let index = i + j*BoxCount;
                 if( this.numbs[ index ] == numb ){
-                    this.boxes[ index ].setTextColor( EqualNumberColor );
-                }else{
-                    const color = this.initialNumbs[ index ] == 0 ? NumberColor : FixedNumberColor;
-                    this.boxes[ index ].setTextColor( color );
+                    this.boxes[ index ].setTextColor( ColorFontEqual );//EqualNumberColor );
+                // }else{
+                    // const color = this.initialNumbs[ index ] == 0 ? ColorFontNone : ColorFontFixed; ////NumberColor : FixedNumberColor;
+                    // this.boxes[ index ].setTextColor( color );
                 }
             }
         }
         let index = ix + iy*BoxCount;
         if( this.initialNumbs[ index ] == 0 )
-            this.boxes[ ix + iy * BoxCount ].setTextColor( this.checkNumber(ix, iy, numb) ? RightNumberColor : WrongNumberColor );
+            // this.boxes[ ix + iy * BoxCount ].setTextColor( this.checkNumber(ix, iy, numb) ?  RightNumberColor : WrongNumberColor );
+            this.boxes[ ix + iy * BoxCount ].setTextColor( ColorFontEnter );
     }
 
     // 判定（現在配置されている数字でダブリがないかチェック　正解かどうかではない）
     checkNumber( ix:number, iy:number, numb:number ):boolean{
-        // let numb = this.numbs[ ix + iy * BoxCount ];
-        // let headX = Math.floor(ix/3) * 3;
-        // let headY = Math.floor(iy/3) * 3;
-
-        // for( let i=0 ; i<BoxCount ; i++ ){
-        //     for( let j=0 ; j<BoxCount ; j++ ){
-        //         if( i == ix && j == iy )
-        //             continue;
-                
-        //         // 対象のマスの数値を判定
-        //         let index = i + j*BoxCount;
-        //         let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
-        //         if( inBox3x3 || i == ix || j==iy ){
-        //             if( this.numbs[ index ] == numb ){
-        //                 return false;   // wrong
-        //             }
-        //         }
-        //     }
-        // }
-        // return true; // correct
-
-        // こちらのほうが対象を絞って高速　
-        //let numb = this.numbs[ ix + iy * BoxCount ];
         // 横ライン
         for( let i=0 ; i<BoxCount ; i++ )
             if( i != ix && this.numbs[ i + iy * BoxCount ] == numb )

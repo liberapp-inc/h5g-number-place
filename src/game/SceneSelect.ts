@@ -111,7 +111,7 @@ class SceneSelect extends GameObject{
                     break;
                 let xr = 0.50 + (ix-4) * BoxWpw;
                 let yr = 0.50 + (iy-4) * BoxHph;
-                let color = Util.getSaveDataNumber( SaveKeyClearTime+index, 0 ) > 0 ? BoxColor : FontColor;
+                let color = Util.getSaveDataNumber( SaveKeyClearTime+index, 0 ) > 0 ? ColorCellFixed : ColorCellNone; //BoxColor : FontColor;
                 this.games[ index ] = new Button( ""+(index+1), Util.width/20, BackColor, xr, yr, BoxWpw*0.85, BoxHph*0.85, color, 1.0, -1, true, (btn:Button)=>this.onTapGames(btn), this, index );
             }
         }

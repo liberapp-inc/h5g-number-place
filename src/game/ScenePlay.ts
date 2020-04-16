@@ -4,7 +4,7 @@
 class ScenePlay extends GameObject{
 
     static loadScene() {
-        new BlockLine();
+        // new BlockLine();
         new Game();
         new Score();
     }

@@ -11,18 +11,43 @@ for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
 var SaveKeyClearTime = "HyperSudokuClearTime"; // +問題番号Keyにクリア時間を記録
-var BackColor = 0x000000; // index.htmlで設定
-var FontColor = 0x00ffff;
-var BoxColor = 0x205080;
-var BoxLineColor = 0x00ffff;
-var FixedBoxColor = 0x203868;
-var RelateBoxColor = 0x002040;
-var SelectBoxColor = 0x001020;
-var NumberColor = 0x00ffff;
-var FixedNumberColor = 0xff0060;
-var RightNumberColor = 0x00ffff;
-var WrongNumberColor = 0xffff00;
-var EqualNumberColor = 0xffff00;
+var BackColor = 0xffffff; // index.htmlで設定
+var FontColor = 0x00e8e8;
+// 未入力
+var ColorCellNone = 0xCFDCE5;
+var ColorFontNone = 0x5C9399;
+// 問題 固定数値
+var ColorCellFixed = 0xA3BBCC;
+var ColorFontFixed = ColorFontNone;
+// 入力済み 
+var ColorCellEnter = ColorCellNone;
+var ColorFontEnter = 0x203868;
+// 選択
+var ColorCellPick = 0xFFFF00;
+var ColorFontPick = 0x203868;
+var ColorCellPickEnter = ColorCellNone;
+var ColorFontPickEnter = 0x203868;
+var ColorCellPickFixed = 0xA3BBCC;
+var ColorFontPickFixed = ColorFontNone;
+// 選択と同じ数
+var ColorCellEqual = ColorCellNone; //0x203868; おそらく指示間違い
+var ColorFontEqual = ColorCellPick;
+var ColorCellEqualFixed = 0xA3BBCC;
+var ColorFontEqualFixed = ColorCellPick;
+// ガイド　未入力　入力済み
+var ColorCellGuide = 0xE2E1CF;
+var ColorFontGuide = ColorFontEnter;
+var ColorFontGuideFixed = 0x5CB399;
+// const BoxColor = 0x205080;
+// const BoxLineColor = 0x00ffff;
+// const FixedBoxColor  = 0x203868;
+// const RelateBoxColor = 0x002040;
+// const SelectBoxColor = 0x001020;
+// const NumberColor = 0x00ffff;
+// const FixedNumberColor = 0xff0060;
+// const RightNumberColor = 0x00ffff;
+// const WrongNumberColor = 0xffff00;
+// const EqualNumberColor = 0xffff00;
 var KeyColor = FontColor; //0xff50ff;
 var KeyLineColor = FontColor; //0x803080;
 var KeyFontColor = BackColor; //0x200020;
@@ -77,11 +102,15 @@ var Game = (function (_super) {
                     numText = "";
                 var xr = BoxCenterXpw + (ix - 4) * BoxWpw;
                 var yr = BoxCenterYph + (iy - 4) * BoxHph;
-                var bold = num != 0;
-                _this.boxes[i] = new Box(numText, xr, yr, BoxWpw * 0.95, BoxHph * 0.95, bold, function (btn) { return _this.onBox(btn); }, _this, i);
-                if (bold) {
-                    _this.boxes[i].setColor(FixedBoxColor);
-                    _this.boxes[i].setTextColor(FixedNumberColor);
+                var fixed = num != 0;
+                _this.boxes[i] = new Box(numText, xr, yr, BoxWpw * 0.95, BoxHph * 0.95, true, function (btn) { return _this.onBox(btn); }, _this, i);
+                if (fixed == false) {
+                    _this.boxes[i].setColor(ColorCellNone);
+                    _this.boxes[i].setTextColor(ColorFontNone);
+                }
+                else {
+                    _this.boxes[i].setColor(ColorCellFixed);
+                    _this.boxes[i].setTextColor(ColorFontFixed);
                 }
             }
         }
@@ -98,7 +127,7 @@ var Game = (function (_super) {
         // 削除キー
         _this.delKey = new Button("×", 42, KeyFontColor, 0.8, KeyCenterYph - KeyHph, KeyWpw * 0.9, KeyHph * 0.9, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onDelKey(btn); }, _this);
         // Backキー
-        _this.delKey = new Button("◀", 30, KeyFontColor, 0.05, 0.04, KeyWpw * 0.7, KeyHph * 0.7, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onBackKey(btn); }, _this);
+        _this.delKey = new Button("<", 30, KeyFontColor, 0.05, 0.04, KeyWpw * 0.7, KeyHph * 0.7, KeyColor, 1, KeyLineColor, true, function (btn) { return _this.onBackKey(btn); }, _this);
         return _this;
     }
     Game.prototype.onBox = function (btn) {
@@ -134,18 +163,25 @@ var Game = (function (_super) {
         var num;
         if (this.touchedBoxID >= 0 && this.touchedBoxID != this.currentBoxID) {
             if (this.currentBoxID >= 0) {
-                this.boxes[this.currentBoxID].setColor(BoxColor);
-                this.boxes[this.currentBoxID].setTextColor(NumberColor);
+                if (this.initialNumbs[this.currentBoxID] == 0) {
+                    this.boxes[this.currentBoxID].setColor(ColorCellPick);
+                    this.boxes[this.currentBoxID].setTextColor(ColorFontPick);
+                }
+                else {
+                    this.boxes[this.currentBoxID].setColor(ColorCellPickFixed);
+                    this.boxes[this.currentBoxID].setTextColor(ColorFontPickFixed);
+                }
             }
             this.currentBoxID = this.touchedBoxID;
             // 対象エリアカラー
             var ix = this.currentBoxID % BoxCount;
             var iy = Math.floor(this.currentBoxID / BoxCount);
-            this.setRelateBoxColor(ix, iy);
-            this.setRelateTextColor(ix, iy, this.numbs[this.currentBoxID]);
+            this.setGuideBoxColor(ix, iy);
+            this.setEqualTextColor(ix, iy, this.numbs[this.currentBoxID]);
             // 対象BOXカラー
             var box = this.boxes[this.currentBoxID];
-            box.setColor(SelectBoxColor);
+            box.setColor(ColorCellPick);
+            box.setTextColor(ColorFontPick);
             this.effectChooseBox(box.X, box.Y);
         }
         // 数字キー入力
@@ -161,7 +197,8 @@ var Game = (function (_super) {
                             if ((this.notes[this.currentBoxID] & (1 << this.touchedKeyID)) != 0) {
                                 var ix = this.currentBoxID % BoxCount;
                                 var iy = Math.floor(this.currentBoxID / BoxCount);
-                                this.setRelateTextColor(ix, iy, this.touchedKeyID);
+                                this.setGuideBoxColor(ix, iy);
+                                this.setEqualTextColor(ix, iy, this.touchedKeyID);
                                 if (this.checkNumber(ix, iy, this.touchedKeyID)) {
                                     var box = this.boxes[this.currentBoxID];
                                     this.effectRightNumber(box.X, box.Y);
@@ -194,13 +231,14 @@ var Game = (function (_super) {
         var box = this.boxes[boxID];
         var ix = boxID % BoxCount;
         var iy = Math.floor(boxID / BoxCount);
-        this.setRelateTextColor(ix, iy, numb);
+        this.setGuideBoxColor(ix, iy);
+        this.setEqualTextColor(ix, iy, numb);
         if (this.checkNumber(ix, iy, numb)) {
-            box.setTextColor(NumberColor);
+            box.setTextColor(ColorFontEnter); // NumberColor );
             this.effectRightNumber(box.X, box.Y);
         }
         else {
-            box.setTextColor(WrongNumberColor);
+            box.setTextColor(ColorFontEnter); //ColorFontEnterWrong );
         }
         this.updateBoxOutline3x3(ix, iy);
         if (this.checkClear()) {
@@ -210,16 +248,16 @@ var Game = (function (_super) {
         }
     };
     Game.prototype.updateBoxOutline3x3 = function (ix, iy) {
-        var lineRgb = this.checkNumber3x3(ix, iy) ? 0x000000 : BoxLineColor;
-        var headX = Math.floor(ix / 3) * 3;
-        var headY = Math.floor(iy / 3) * 3;
-        for (var i = 0; i < 3; i++) {
-            for (var j = 0; j < 3; j++) {
-                var x = headX + i;
-                var y = headY + j;
-                this.boxes[x + y * BoxCount].setOutline(lineRgb);
-            }
-        }
+        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
+        // let headX = Math.floor(ix/3) * 3;
+        // let headY = Math.floor(iy/3) * 3;
+        // for( let i=0 ; i<3 ; i++ ){
+        //     for( let j=0 ; j<3 ; j++ ){
+        //         let x = headX + i;
+        //         let y = headY + j;
+        //         this.boxes[ x + y*BoxCount ].setOutline( lineRgb );
+        //     }
+        // }
     };
     Game.prototype.checkNumber3x3 = function (ix, iy) {
         var headX = Math.floor(ix / 3) * 3;
@@ -256,67 +294,67 @@ var Game = (function (_super) {
         new EffectChainer(0, px, py, 0, +Util.h(BoxHph), 5);
         new EffectChainer(0, px, py, 0, -Util.h(BoxHph), 5);
     };
-    Game.prototype.setRelateBoxColor = function (ix, iy) {
+    Game.prototype.setGuideBoxColor = function (ix, iy) {
         var numb = this.numbs[ix + iy * BoxCount];
         var headX = Math.floor(ix / 3) * 3;
         var headY = Math.floor(iy / 3) * 3;
         for (var i = 0; i < BoxCount; i++) {
             for (var j = 0; j < BoxCount; j++) {
                 var index = i + j * BoxCount;
+                var box = this.boxes[index];
                 // 対象のマスを水色に
                 var inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
-                var color = 0;
                 if (inBox3x3 || i == ix || j == iy) {
-                    color = RelateBoxColor;
+                    if (this.initialNumbs[index] == 0) {
+                        box.setColor(ColorCellGuide);
+                        box.setTextColor(ColorFontGuide);
+                    }
+                    else {
+                        box.setColor(ColorCellGuide);
+                        box.setTextColor(ColorFontGuideFixed);
+                    }
                 }
                 else {
-                    color = this.initialNumbs[index] == 0 ? BoxColor : FixedBoxColor;
+                    // const fixed = this.initialNumbs[index]==0 ? ColorCellNone : ColorCellFixed; // BoxColor : FixedBoxColor;
+                    if (this.initialNumbs[index] == 0) {
+                        if (numb == 0) {
+                            box.setColor(ColorCellNone);
+                            box.setTextColor(ColorFontNone);
+                        }
+                        else {
+                            box.setColor(ColorCellEnter);
+                            box.setTextColor(ColorFontEnter);
+                        }
+                    }
+                    else {
+                        box.setColor(ColorCellFixed);
+                        box.setTextColor(ColorFontFixed);
+                    }
                 }
-                this.boxes[index].setColor(color);
             }
         }
     };
-    Game.prototype.setRelateTextColor = function (ix, iy, numb) {
+    Game.prototype.setEqualTextColor = function (ix, iy, numb) {
         //let numb = this.numbs[ ix + iy * BoxCount ];
         // 同じ数値を強調
         for (var i = 0; i < BoxCount; i++) {
             for (var j = 0; j < BoxCount; j++) {
                 var index_1 = i + j * BoxCount;
                 if (this.numbs[index_1] == numb) {
-                    this.boxes[index_1].setTextColor(EqualNumberColor);
-                }
-                else {
-                    var color = this.initialNumbs[index_1] == 0 ? NumberColor : FixedNumberColor;
-                    this.boxes[index_1].setTextColor(color);
+                    this.boxes[index_1].setTextColor(ColorFontEqual); //EqualNumberColor );
+                    // }else{
+                    // const color = this.initialNumbs[ index ] == 0 ? ColorFontNone : ColorFontFixed; ////NumberColor : FixedNumberColor;
+                    // this.boxes[ index ].setTextColor( color );
                 }
             }
         }
         var index = ix + iy * BoxCount;
         if (this.initialNumbs[index] == 0)
-            this.boxes[ix + iy * BoxCount].setTextColor(this.checkNumber(ix, iy, numb) ? RightNumberColor : WrongNumberColor);
+            // this.boxes[ ix + iy * BoxCount ].setTextColor( this.checkNumber(ix, iy, numb) ?  RightNumberColor : WrongNumberColor );
+            this.boxes[ix + iy * BoxCount].setTextColor(ColorFontEnter);
     };
     // 判定（現在配置されている数字でダブリがないかチェック　正解かどうかではない）
     Game.prototype.checkNumber = function (ix, iy, numb) {
-        // let numb = this.numbs[ ix + iy * BoxCount ];
-        // let headX = Math.floor(ix/3) * 3;
-        // let headY = Math.floor(iy/3) * 3;
-        // for( let i=0 ; i<BoxCount ; i++ ){
-        //     for( let j=0 ; j<BoxCount ; j++ ){
-        //         if( i == ix && j == iy )
-        //             continue;
-        //         // 対象のマスの数値を判定
-        //         let index = i + j*BoxCount;
-        //         let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
-        //         if( inBox3x3 || i == ix || j==iy ){
-        //             if( this.numbs[ index ] == numb ){
-        //                 return false;   // wrong
-        //             }
-        //         }
-        //     }
-        // }
-        // return true; // correct
-        // こちらのほうが対象を絞って高速　
-        //let numb = this.numbs[ ix + iy * BoxCount ];
         // 横ライン
         for (var i = 0; i < BoxCount; i++)
             if (i != ix && this.numbs[i + iy * BoxCount] == numb)

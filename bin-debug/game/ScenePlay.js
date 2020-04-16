@@ -16,7 +16,7 @@ var ScenePlay = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     ScenePlay.loadScene = function () {
-        new BlockLine();
+        // new BlockLine();
         new Game();
         new Score();
     };
