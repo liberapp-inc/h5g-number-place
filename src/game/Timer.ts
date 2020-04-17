@@ -13,6 +13,9 @@ class Timer extends GameObject{
     }
 
 	update(){
+        if( GameOver.I != null )
+            return;
+
         this.timer += 1/60;
         Score.I.setPoint( this.timer );
 	}

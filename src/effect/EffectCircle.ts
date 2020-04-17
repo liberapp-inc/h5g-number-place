@@ -9,7 +9,7 @@ class EffectCircle extends GameObject{
     static readonly maxFrame:number = 30;
     frame:number = EffectCircle.maxFrame;
 
-    constructor( x:number, y:number, radius:number, color:number=0xffc000 ) {
+    constructor( x:number, y:number, radius:number, color:number=EffectColor ) {
         super();
 
         this.radius = radius;

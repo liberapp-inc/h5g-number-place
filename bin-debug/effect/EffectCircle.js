@@ -13,7 +13,7 @@ r.prototype = e.prototype, t.prototype = new r();
 var EffectCircle = (function (_super) {
     __extends(EffectCircle, _super);
     function EffectCircle(x, y, radius, color) {
-        if (color === void 0) { color = 0xffc000; }
+        if (color === void 0) { color = EffectColor; }
         var _this = _super.call(this) || this;
         _this.frame = EffectCircle.maxFrame;
         _this.radius = radius;

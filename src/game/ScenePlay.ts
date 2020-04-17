@@ -7,6 +7,7 @@ class ScenePlay extends GameObject{
         // new BlockLine();
         new Game();
         new Score();
+        new Timer();
     }
 
     update(){

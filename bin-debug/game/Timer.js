@@ -20,6 +20,8 @@ var Timer = (function (_super) {
     Timer.prototype.onDestroy = function () {
     };
     Timer.prototype.update = function () {
+        if (GameOver.I != null)
+            return;
         this.timer += 1 / 60;
         Score.I.setPoint(this.timer);
     };

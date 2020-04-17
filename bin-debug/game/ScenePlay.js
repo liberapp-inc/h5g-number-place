@@ -19,6 +19,7 @@ var ScenePlay = (function (_super) {
         // new BlockLine();
         new Game();
         new Score();
+        new Timer();
     };
     ScenePlay.prototype.update = function () {
     };
