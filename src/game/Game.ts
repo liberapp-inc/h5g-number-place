@@ -32,7 +32,8 @@ const ColorCellGuide = 0xE2E1CF;
 const ColorFontGuide = ColorFontEnter;
 const ColorFontGuideFixed = 0x5CB399;
 
-const KeyColor = FontColor;     //0xff50ff;
+const KeyColor  = 0x90A0C0;     //0xff50ff;
+const KeyColor2 = 0xe5e5e5;     //0xff50ff;
 const KeyLineColor = FontColor; //0x803080;
 const KeyFontColor = BackColor;//0x200020;
 
@@ -40,18 +41,18 @@ const EffectColor = 0x5CB399; //0x00ffe0;
 
 const BoxCount = 9;
 const BoxSizeInW = 10;
-const BoxSizeInH = 15;
+const BoxSizeInH = 18;
 const BoxWpw = 1/BoxSizeInW;
 const BoxHph = 1/BoxSizeInH;
 const KeyInW = 8;
-const KeyInH = 12;
+const KeyInH = 15;
 const KeyWpw = 1/KeyInW;
 const KeyHph = 1/KeyInH;
 
 const BoxCenterXpw = 0.50;
-const BoxCenterYph = 0.40;
+const BoxCenterYph = 0.32;
 const KeyCenterXpw = 0.50;
-const KeyCenterYph = 0.85;
+const KeyCenterYph = 0.69;
 
 class Game extends GameObject{
 
@@ -79,13 +80,14 @@ class Game extends GameObject{
     touchedBoxID = -1;
     touchedKeyID = -1;
 
-    count:number = 0;
+    cursoleBlick:number = 0;
+    full3x3:boolean = false;
 
     constructor() {
         super();
         Game.I = this;
 
-        this.texts[0] = Util.newTextField("問題"+(Game.initialGame+1), Util.width / 20, FontColor, 0.5, 0.05, true, true);
+        this.texts[0] = Util.newTextField("問題"+(Game.initialGame+1), Util.width / 20, FontColor, 0.5, 0.03, true, true);
         this.texts.forEach( text =>{ if( text ){ GameObject.baseDisplay.addChild( text ); } });
 
         // マスボタン９ｘ９
@@ -101,6 +103,17 @@ class Game extends GameObject{
                 if( num == 0 ) numText = "";
                 let xr = BoxCenterXpw + (ix-4) * BoxWpw;
                 let yr = BoxCenterYph + (iy-4) * BoxHph;
+
+                // マージン
+                {
+                    const mx = BoxWpw * 0.1;
+                    const my = BoxHph * 0.1;
+                    if( ix <= 2 ) xr -= mx;
+                    if( ix >= 6 ) xr += mx;
+                    if( iy <= 2 ) yr -= my;
+                    if( iy >= 6 ) yr += my;
+                }
+
                 let fixed = num != 0;
                 this.boxes[ i ] = new Box( numText, xr, yr, BoxWpw*0.95, BoxHph*0.95, true, (btn:Box)=>this.onBox(btn), this, i );
                 if( fixed == false ){
@@ -126,7 +139,7 @@ class Game extends GameObject{
         // 削除キー
         this.delKey = new Button( "×", 42, KeyFontColor, 0.8, KeyCenterYph-KeyHph, KeyWpw*0.9, KeyHph*0.9, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onDelKey(btn), this );
         // Backキー
-        this.delKey = new Button( "<", 30, KeyFontColor, 0.05, 0.04, KeyWpw*0.7, KeyHph*0.7, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onBackKey(btn), this );
+        this.delKey = new Button( "<", 30, KeyFontColor, 0.05, 0.03, KeyWpw*0.7, KeyHph*0.7, KeyColor, 1, KeyLineColor, true, (btn:Button)=>this.onBackKey(btn), this );
     }
 
     onBox( btn:Box ){
@@ -171,13 +184,16 @@ class Game extends GameObject{
             }
             this.currentBoxID = this.touchedBoxID;
 
+            // 数値キーカラー
+            this.setKeyColor();
+
             // 対象エリアカラー
             let ix = this.currentBoxID % BoxCount;
             let iy = Math.floor( this.currentBoxID / BoxCount );
             this.setGuideBoxColor( ix, iy );
             this.setEqualTextColor( ix, iy, this.numbs[ this.currentBoxID ] );
             // 対象BOXカラー
-            this.count = 0;
+            this.cursoleBlick = 0;
             let box = this.boxes[ this.currentBoxID ];
             box.setColor( ColorCellPick );
             box.setTextColor( ColorFontPick );
@@ -185,23 +201,19 @@ class Game extends GameObject{
         }
         // カーソル点滅
         if( this.currentBoxID >= 0 ){
-            this.count++;
+            this.cursoleBlick += 1/60;
             let box = this.boxes[ this.currentBoxID ];
-            if( (this.count & 0x10) == 0 ){
-                box.setColor( ColorCellPick );
-            }else{
-                if( this.initialNumbs[ this.currentBoxID ] == 0 )
-                    box.setColor( ColorCellNone );
-                else
-                    box.setColor( ColorCellFixed );
-            }
+            let rate = Math.abs( Math.cos( this.cursoleBlick * Math.PI ) );
+            let cellColor = ( this.initialNumbs[ this.currentBoxID ] == 0 ) ? ColorCellNone : ColorCellFixed;
+            let color = Util.colorLerp( ColorCellPick, cellColor, rate );
+            box.setColor( color );
         }
         
         
         // 数字キー入力
         if( this.touchedKeyID >= 0 ){
             if( this.currentBoxID >= 0 ){
-                if( this.initialNumbs[ this.currentBoxID ] == 0 ){
+                if( this.numbs[ this.currentBoxID ] == 0 ){
                     // メモがあれば追加削除
                     if( this.notes[ this.currentBoxID ] != 0 ){
                         this.notes[ this.currentBoxID ] ^= (1<<this.touchedKeyID);
@@ -222,15 +234,19 @@ class Game extends GameObject{
                             this.setBoxNumber( this.currentBoxID, this.touchedKeyID );
                         }
                     }
-                    // 同じ数字ならメモ追加削除
-                    else if( this.numbs[ this.currentBoxID ] == this.touchedKeyID ){
-                        this.setBoxNumber( this.currentBoxID, 0 );
-                        this.notes[ this.currentBoxID ] ^= (1<<this.touchedKeyID);
-                        this.boxes[ this.currentBoxID ].setNote( this.notes[ this.currentBoxID ] );
-                    }
                     else{
+                        // Todo 3x3に同じ数字があれば入力不可
                         this.setBoxNumber( this.currentBoxID, this.touchedKeyID );
                     }
+                }
+                // 同じ数字ならメモ追加削除
+                else if( this.numbs[ this.currentBoxID ] == this.touchedKeyID ){
+                    this.setBoxNumber( this.currentBoxID, 0 );
+                    this.notes[ this.currentBoxID ] ^= (1<<this.touchedKeyID);
+                    this.boxes[ this.currentBoxID ].setNote( this.notes[ this.currentBoxID ] );
+                }
+                else{
+                    this.effectDisabledKey( this.touchedKeyID );
                 }
             }
         }
@@ -238,6 +254,35 @@ class Game extends GameObject{
         this.touchedBoxID = -1;
         this.touchedKeyID = -1;
 	}
+
+    private setKeyColor(){
+        // 3x3エリアが埋まっているならキー入力不可 カラー変更
+        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
+
+        if( this.currentBoxID < 0 ) return;
+
+        this.full3x3 = true;
+        let ix = this.currentBoxID % BoxCount;
+        let iy = Math.floor( this.currentBoxID / BoxCount );
+        let headX = Math.floor(ix/3) * 3;
+        let headY = Math.floor(iy/3) * 3;
+        for( let i=0 ; i<3 ; i++ ){
+            for( let j=0 ; j<3 ; j++ ){
+                let x = headX + i;
+                let y = headY + j;
+                if( this.numbs[ x + y*BoxCount ] == 0 ){
+                    this.full3x3 = false;
+                    break;
+                }
+            }
+        }
+
+        let color = this.full3x3 ? KeyColor2 : KeyColor;
+        // 数値キー １〜９
+        for( let i=1 ; i<=9 ; i++ ){
+            this.keys[ i ].setColor( color );
+        }
+    }
 
     private setBoxNumber( boxID:number, numb:number ){
         // マスに設定
@@ -318,6 +363,18 @@ class Game extends GameObject{
         new EffectChainer( 0, px, py, 0, +Util.h(BoxHph), 5 );
         new EffectChainer( 0, px, py, 0, -Util.h(BoxHph), 5 );
     }
+    effectDisabledKey( keyID:number ){
+        let key = this.keys[ keyID ];
+        let px = key.X;
+        let py = key.Y;
+        let s = Util.w(KeyWpw) * 1.3;
+        new EffectFrame(px, py, s, s, EffectColor, 0.7, 1/2, 1/2, 0, 0).delta = 1/12;
+
+        let box = this.boxes[ this.currentBoxID ];
+        px = box.X;
+        py = box.Y;
+        new EffectFrame(px, py, s, s, EffectColor, 0.7, 1/2, 1/2, 0, 0).delta = 1/12;
+    }
 
 
     setGuideBoxColor( ix:number, iy:number ){
@@ -328,8 +385,8 @@ class Game extends GameObject{
             for( let j=0 ; j<BoxCount ; j++ ){
                 let index = i + j*BoxCount;
                 let box = this.boxes[ index ];
-                // 対象のマスを水色に
-                let inBox3x3 = i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
+                // 対象のマスを別色に
+                let inBox3x3 = false; // 3x3エリアは色を変えないことに //= i >= headX && i <= headX + 2 && j >= headY && j <= headY + 2;
                 if( inBox3x3 || i == ix || j==iy ){
                     if( this.initialNumbs[index]>0 ){
                         box.setColor( ColorCellGuide );
