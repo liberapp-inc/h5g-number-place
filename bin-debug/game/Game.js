@@ -226,7 +226,13 @@ var Game = (function (_super) {
                         }
                     }
                     else {
-                        this.setBoxNumber(this.currentBoxID, this.touchedKeyID);
+                        // Todo 3x3に同じ数字があれば入力不可
+                        if (this.checkSameNumberOn3x3(this.currentBoxID, this.touchedKeyID)) {
+                            this.effectDisabledKey(this.touchedKeyID);
+                        }
+                        else {
+                            this.setBoxNumber(this.currentBoxID, this.touchedKeyID);
+                        }
                     }
                 }
                 else if (this.numbs[this.currentBoxID] == this.touchedKeyID) {
@@ -244,7 +250,6 @@ var Game = (function (_super) {
     };
     Game.prototype.setKeyColor = function () {
         // 3x3エリアが埋まっているならキー入力不可 カラー変更
-        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
         if (this.currentBoxID < 0)
             return;
         this.full3x3 = true;
@@ -285,38 +290,29 @@ var Game = (function (_super) {
         else {
             box.setTextColor(ColorFontEnter); //ColorFontEnterWrong );
         }
-        this.updateBoxOutline3x3(ix, iy);
         if (this.checkClear()) {
             new GameOver();
             if (Util.getSaveDataNumber(SaveKeyClearTime + Game.initialGame, 999) > Score.I.point)
                 Util.setSaveDataNumber(SaveKeyClearTime + Game.initialGame, Score.I.point);
         }
     };
-    Game.prototype.updateBoxOutline3x3 = function (ix, iy) {
-        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
-        // let headX = Math.floor(ix/3) * 3;
-        // let headY = Math.floor(iy/3) * 3;
-        // for( let i=0 ; i<3 ; i++ ){
-        //     for( let j=0 ; j<3 ; j++ ){
-        //         let x = headX + i;
-        //         let y = headY + j;
-        //         this.boxes[ x + y*BoxCount ].setOutline( lineRgb );
-        //     }
-        // }
-    };
-    Game.prototype.checkNumber3x3 = function (ix, iy) {
+    Game.prototype.checkSameNumberOn3x3 = function (boxID, key) {
+        var ix = boxID % BoxCount;
+        var iy = Math.floor(boxID / BoxCount);
         var headX = Math.floor(ix / 3) * 3;
         var headY = Math.floor(iy / 3) * 3;
         for (var i = 0; i < 3; i++) {
             for (var j = 0; j < 3; j++) {
                 var x = headX + i;
                 var y = headY + j;
-                if (this.checkNumber(x, y, this.numbs[x + y * BoxCount]) == false) {
-                    return false; // 3x3 wrong
+                if (x == ix && y == iy)
+                    continue;
+                if (this.numbs[x + y * BoxCount] == key) {
+                    return true; // 同じ数字すでにあり
                 }
             }
         }
-        return true; // 3x3 correct
+        return false; // 同じ数字なし
     };
     Game.prototype.effectChooseBox = function (px, py) {
         new EffectSquare(Util.w(randF(0.2, 0.8)), py, Util.w(1.4), Util.h(BoxHph), EffectColor, 0.5, 1 / 3, 1 / 9);
@@ -370,7 +366,6 @@ var Game = (function (_super) {
                     }
                 }
                 else {
-                    // const fixed = this.initialNumbs[index]==0 ? ColorCellNone : ColorCellFixed; // BoxColor : FixedBoxColor;
                     if (this.initialNumbs[index] > 0) {
                         box.setColor(ColorCellFixed);
                         box.setTextColor(ColorFontFixed);
@@ -398,15 +393,11 @@ var Game = (function (_super) {
                 var index_1 = i + j * BoxCount;
                 if (this.numbs[index_1] == numb) {
                     this.boxes[index_1].setTextColor(ColorFontEqual); //EqualNumberColor );
-                    // }else{
-                    // const color = this.initialNumbs[ index ] == 0 ? ColorFontNone : ColorFontFixed; ////NumberColor : FixedNumberColor;
-                    // this.boxes[ index ].setTextColor( color );
                 }
             }
         }
         var index = ix + iy * BoxCount;
         if (this.initialNumbs[index] == 0)
-            // this.boxes[ ix + iy * BoxCount ].setTextColor( this.checkNumber(ix, iy, numb) ?  RightNumberColor : WrongNumberColor );
             this.boxes[index].setTextColor(ColorFontEnter);
     };
     // 判定（現在配置されている数字でダブリがないかチェック　正解かどうかではない）

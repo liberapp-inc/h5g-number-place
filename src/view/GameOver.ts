@@ -6,7 +6,7 @@ class GameOver extends GameObject{
     static I:GameOver = null;
 
     texts:egret.TextField[] = [];
-    retryButton:Button = null;
+    buttonOK:Button = null;
     step:number = 0;
     readonly fadeInFrame:number = 64;
 
@@ -15,11 +15,13 @@ class GameOver extends GameObject{
 
         GameOver.I = this;
 
-        this.texts[0] = Util.newTextField("CLEAR!!", Util.width / 12, FontColor, 0.5, 0.3, true, false);
-        egret.Tween.get(this.texts[0],{loop:false})
+        this.buttonOK = new Button("クリア", Util.width/16, BackColor, 0.50, 0.3, 1.4, 0.2, FontColor, 1.0, -1, true, this.onTapRetry, this );
+        egret.Tween.get(this.buttonOK.text,{loop:false})
             .to({alpha:0}, 0)
             .to({alpha:1}, 1000)
-        GameObject.baseDisplay.addChild( this.texts[0] );
+        egret.Tween.get(this.buttonOK.display,{loop:false})
+            .to({alpha:0}, 0)
+            .to({alpha:1}, 1000)
     }
 
     onDestroy() {
@@ -29,23 +31,9 @@ class GameOver extends GameObject{
     }
     
     update() {
-        this.step++;
-        if( this.step == this.fadeInFrame ){
-            this.retryButton = new Button("リトライ", Util.width/16, BackColor, 0.50, 0.55, 0.4, 0.1, FontColor, 1.0, -1, true, this.onTapRetry, this );
-            
-            // if( Score.I.point < Score.I.bestScore ){
-            //     Util.setSaveDataNumber( SaveKeyClearTime+Game.initialGame, Score.I.point );
-            //     this.texts[1] = Util.newTextField("NEW RECORD!", Util.width / 13, FontColor, 0.5, 0.4, true, false);
-            //     egret.Tween.get(this.texts[1],{loop:true})
-            //         .to({alpha:0}, 500)
-            //         .to({alpha:1}, 500)
-            //     GameObject.baseDisplay.addChild( this.texts[1] );
-            // }
-        }
      }
 
     onTapRetry(){
-        GameObject.transit = ScenePlay.loadScene;
-        // this.destroy();
+        GameObject.transit = SceneSelect.loadScene;
     }
 }

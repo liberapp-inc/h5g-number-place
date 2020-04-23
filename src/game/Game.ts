@@ -236,7 +236,12 @@ class Game extends GameObject{
                     }
                     else{
                         // Todo 3x3に同じ数字があれば入力不可
-                        this.setBoxNumber( this.currentBoxID, this.touchedKeyID );
+                        if( this.checkSameNumberOn3x3( this.currentBoxID, this.touchedKeyID ) )
+                        {
+                            this.effectDisabledKey( this.touchedKeyID );
+                        }else{
+                            this.setBoxNumber( this.currentBoxID, this.touchedKeyID );
+                        }
                     }
                 }
                 // 同じ数字ならメモ追加削除
@@ -257,8 +262,6 @@ class Game extends GameObject{
 
     private setKeyColor(){
         // 3x3エリアが埋まっているならキー入力不可 カラー変更
-        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
-
         if( this.currentBoxID < 0 ) return;
 
         this.full3x3 = true;
@@ -302,8 +305,6 @@ class Game extends GameObject{
             box.setTextColor( ColorFontEnter ); //ColorFontEnterWrong );
         }
 
-        this.updateBoxOutline3x3( ix, iy );
-
         if( this.checkClear() ){
             new GameOver();
             if( Util.getSaveDataNumber(SaveKeyClearTime+Game.initialGame, 999) > Score.I.point )
@@ -311,21 +312,10 @@ class Game extends GameObject{
         }
     }
 
-    updateBoxOutline3x3( ix:number, iy:number ){
-        // let lineRgb = this.checkNumber3x3( ix, iy ) ? 0x000000 : BoxLineColor;
+    checkSameNumberOn3x3( boxID:number, key:number ):boolean{
+        let ix = boxID % BoxCount;
+        let iy = Math.floor( boxID / BoxCount );
 
-        // let headX = Math.floor(ix/3) * 3;
-        // let headY = Math.floor(iy/3) * 3;
-        // for( let i=0 ; i<3 ; i++ ){
-        //     for( let j=0 ; j<3 ; j++ ){
-        //         let x = headX + i;
-        //         let y = headY + j;
-        //         this.boxes[ x + y*BoxCount ].setOutline( lineRgb );
-        //     }
-        // }
-    }
-
-    checkNumber3x3( ix:number, iy:number ):boolean{
         let headX = Math.floor(ix/3) * 3;
         let headY = Math.floor(iy/3) * 3;
 
@@ -333,12 +323,14 @@ class Game extends GameObject{
             for( let j=0 ; j<3 ; j++ ){
                 let x = headX + i;
                 let y = headY + j;
-                if( this.checkNumber( x, y, this.numbs[ x + y * BoxCount ] ) == false ){
-                    return false; // 3x3 wrong
+                if( x==ix && y==iy )
+                    continue;
+                if( this.numbs[ x + y * BoxCount ] == key ){
+                    return true; // 同じ数字すでにあり
                 }
             }
         }
-        return true; // 3x3 correct
+        return false;   // 同じ数字なし
     }
 
     effectChooseBox( px:number, py:number ){
@@ -396,7 +388,6 @@ class Game extends GameObject{
                         box.setTextColor( ColorFontGuide );
                     }
                 }else{
-                    // const fixed = this.initialNumbs[index]==0 ? ColorCellNone : ColorCellFixed; // BoxColor : FixedBoxColor;
                     if( this.initialNumbs[index]>0 ){
                         box.setColor( ColorCellFixed );
                         box.setTextColor( ColorFontFixed );
@@ -423,15 +414,11 @@ class Game extends GameObject{
                 let index = i + j*BoxCount;
                 if( this.numbs[ index ] == numb ){
                     this.boxes[ index ].setTextColor( ColorFontEqual );//EqualNumberColor );
-                // }else{
-                    // const color = this.initialNumbs[ index ] == 0 ? ColorFontNone : ColorFontFixed; ////NumberColor : FixedNumberColor;
-                    // this.boxes[ index ].setTextColor( color );
                 }
             }
         }
         let index = ix + iy*BoxCount;
         if( this.initialNumbs[ index ] == 0 )
-            // this.boxes[ ix + iy * BoxCount ].setTextColor( this.checkNumber(ix, iy, numb) ?  RightNumberColor : WrongNumberColor );
             this.boxes[ index ].setTextColor( ColorFontEnter );
     }
 
